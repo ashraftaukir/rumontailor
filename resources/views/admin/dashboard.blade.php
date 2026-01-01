@@ -164,6 +164,19 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-4">
+                        <!-- Quick Search -->
+                        <div class="hidden md:block">
+                            <form method="GET" action="{{ route('admin.orders.index') }}" class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                                <input type="text" 
+                                       name="search" 
+                                       placeholder="Quick search orders..." 
+                                       class="w-64 pl-10 pr-4 py-2 border-2 border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white/80 backdrop-blur text-sm"
+                                       onkeypress="if(event.key === 'Enter') this.form.submit()">
+                            </form>
+                        </div>
                         <div class="text-right px-4 py-2 rounded-xl bg-white/40 backdrop-blur">
                             <p class="text-sm font-bold text-gray-900">{{ Auth::user()->name }}</p>
                             <p class="text-xs text-purple-600 font-medium">Administrator</p>

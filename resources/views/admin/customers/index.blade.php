@@ -139,6 +139,39 @@
                     </div>
                 @endif
 
+                <!-- Search Form -->
+                <div class="mb-6 glass-effect rounded-2xl shadow-xl p-6 animate-fadeInUp" style="animation-delay: 0.1s;">
+                    <form method="GET" action="{{ route('admin.customers.index') }}" class="flex flex-col md:flex-row gap-4">
+                        <div class="flex-1">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                                <input type="text" 
+                                       name="search" 
+                                       value="{{ request('search') }}"
+                                       placeholder="Search by name, email, phone, or address..." 
+                                       class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white">
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="submit" class="px-6 py-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition">
+                                <i class="fas fa-search mr-2"></i>Search
+                            </button>
+                            @if(request('search'))
+                                <a href="{{ route('admin.customers.index') }}" class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl transition">
+                                    <i class="fas fa-times mr-2"></i>Clear
+                                </a>
+                            @endif
+                        </div>
+                    </form>
+                    @if(request('search'))
+                        <div class="mt-4 text-sm text-gray-600">
+                            <i class="fas fa-info-circle mr-2"></i>Showing results for: <strong>"{{ request('search') }}"</strong>
+                        </div>
+                    @endif
+                </div>
+
                 <!-- Customers Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @forelse($customers as $customer)
@@ -206,11 +239,25 @@
                                 <div class="relative w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                                     <i class="fas fa-users text-gray-400 text-4xl"></i>
                                 </div>
-                                <h3 class="text-2xl font-black text-gray-900 mb-3">No customers found</h3>
-                                <p class="text-gray-600 mb-8 font-medium">Get started by creating your first customer.</p>
-                                <a href="{{ route('admin.customers.create') }}" class="inline-flex items-center px-8 py-4 bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-600 text-white font-bold rounded-xl shadow-xl shadow-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/60 transform hover:scale-105 transition">
-                                    <i class="fas fa-plus-circle mr-2 text-lg"></i>Create Customer
-                                </a>
+                                <h3 class="text-2xl font-black text-gray-900 mb-3">
+                                    @if(request('search'))
+                                        No customers found for "{{ request('search') }}"
+                                    @else
+                                        No customers found
+                                    @endif
+                                </h3>
+                                <p class="text-gray-600 mb-8 font-medium">
+                                    @if(request('search'))
+                                        Try adjusting your search terms or <a href="{{ route('admin.customers.index') }}" class="text-indigo-600 font-bold hover:underline">clear the search</a>.
+                                    @else
+                                        Get started by creating your first customer.
+                                    @endif
+                                </p>
+                                @if(!request('search'))
+                                    <a href="{{ route('admin.customers.create') }}" class="inline-flex items-center px-8 py-4 bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-600 text-white font-bold rounded-xl shadow-xl shadow-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/60 transform hover:scale-105 transition">
+                                        <i class="fas fa-plus-circle mr-2 text-lg"></i>Create Customer
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @endforelse

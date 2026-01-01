@@ -11,11 +11,22 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $customers = Customer::withCount('orders')
-            ->latest()
-            ->paginate(15);
+        $query = Customer::withCount('orders');
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%");
+            });
+        }
+
+        $customers = $query->latest()->paginate(15)->withQueryString();
         
         return view('admin.customers.index', compact('customers'));
     }

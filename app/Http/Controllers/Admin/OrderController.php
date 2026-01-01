@@ -13,11 +13,43 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $orders = Order::with('customer')
-            ->latest()
-            ->paginate(15);
+        $query = Order::with('customer');
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                  ->orWhereHas('customer', function($customerQuery) use ($search) {
+                      $customerQuery->where('name', 'like', "%{$search}%")
+                                    ->orWhere('phone', 'like', "%{$search}%")
+                                    ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by garment type
+        if ($request->filled('garment_type')) {
+            $query->where('garment_type', $request->garment_type);
+        }
+
+        // Filter by date range
+        if ($request->filled('date_from')) {
+            $query->where('order_date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->where('order_date', '<=', $request->date_to);
+        }
+
+        $orders = $query->latest()->paginate(15)->withQueryString();
         
         return view('admin.orders.index', compact('orders'));
     }

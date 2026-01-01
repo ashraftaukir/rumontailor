@@ -139,6 +139,141 @@
                     </div>
                 @endif
 
+                <!-- Search and Filter Form -->
+                <div class="mb-6 glass-effect rounded-2xl shadow-xl p-6 animate-fadeInUp" style="animation-delay: 0.1s;">
+                    <form method="GET" action="{{ route('admin.orders.index') }}" class="space-y-4">
+                        <!-- Search Bar -->
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <div class="flex-1">
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <i class="fas fa-search text-gray-400"></i>
+                                    </div>
+                                    <input type="text" 
+                                           name="search" 
+                                           value="{{ request('search') }}"
+                                           placeholder="Search by order number, customer name, phone, or email..." 
+                                           class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Filters Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <!-- Status Filter -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-filter mr-2 text-indigo-600"></i>Status
+                                </label>
+                                <select name="status" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white">
+                                    <option value="">All Statuses</option>
+                                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>⏳ Pending</option>
+                                    <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>🔄 In Progress</option>
+                                    <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>✅ Completed</option>
+                                    <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>🚚 Delivered</option>
+                                    <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>❌ Cancelled</option>
+                                </select>
+                            </div>
+
+                            <!-- Garment Type Filter -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-tshirt mr-2 text-purple-600"></i>Garment Type
+                                </label>
+                                <select name="garment_type" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white">
+                                    <option value="">All Types</option>
+                                    <option value="shirt" {{ request('garment_type') == 'shirt' ? 'selected' : '' }}>👔 Shirt</option>
+                                    <option value="pant" {{ request('garment_type') == 'pant' ? 'selected' : '' }}>👖 Pant</option>
+                                    <option value="suit" {{ request('garment_type') == 'suit' ? 'selected' : '' }}>🤵 Suit</option>
+                                </select>
+                            </div>
+
+                            <!-- Date From -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-calendar-alt mr-2 text-pink-600"></i>From Date
+                                </label>
+                                <input type="date" 
+                                       name="date_from" 
+                                       value="{{ request('date_from') }}"
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white">
+                            </div>
+
+                            <!-- Date To -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-calendar-check mr-2 text-blue-600"></i>To Date
+                                </label>
+                                <input type="date" 
+                                       name="date_to" 
+                                       value="{{ request('date_to') }}"
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white">
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex gap-2">
+                            <button type="submit" class="px-6 py-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition">
+                                <i class="fas fa-search mr-2"></i>Search & Filter
+                            </button>
+                            @if(request()->anyFilled(['search', 'status', 'garment_type', 'date_from', 'date_to']))
+                                <a href="{{ route('admin.orders.index') }}" class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl transition">
+                                    <i class="fas fa-times mr-2"></i>Clear All
+                                </a>
+                            @endif
+                        </div>
+
+                        <!-- Active Filters Display -->
+                        @if(request()->anyFilled(['search', 'status', 'garment_type', 'date_from', 'date_to']))
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <p class="text-sm font-semibold text-gray-700 mb-2">Active Filters:</p>
+                                <div class="flex flex-wrap gap-2">
+                                    @if(request('search'))
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                                            Search: "{{ request('search') }}"
+                                            <a href="{{ route('admin.orders.index', request()->except('search')) }}" class="ml-2 text-indigo-600 hover:text-indigo-800">
+                                                <i class="fas fa-times"></i>
+                                            </a>
+                                        </span>
+                                    @endif
+                                    @if(request('status'))
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                                            Status: {{ ucfirst(str_replace('_', ' ', request('status'))) }}
+                                            <a href="{{ route('admin.orders.index', request()->except('status')) }}" class="ml-2 text-purple-600 hover:text-purple-800">
+                                                <i class="fas fa-times"></i>
+                                            </a>
+                                        </span>
+                                    @endif
+                                    @if(request('garment_type'))
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-pink-100 text-pink-800">
+                                            Type: {{ ucfirst(request('garment_type')) }}
+                                            <a href="{{ route('admin.orders.index', request()->except('garment_type')) }}" class="ml-2 text-pink-600 hover:text-pink-800">
+                                                <i class="fas fa-times"></i>
+                                            </a>
+                                        </span>
+                                    @endif
+                                    @if(request('date_from'))
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                            From: {{ request('date_from') }}
+                                            <a href="{{ route('admin.orders.index', request()->except('date_from')) }}" class="ml-2 text-blue-600 hover:text-blue-800">
+                                                <i class="fas fa-times"></i>
+                                            </a>
+                                        </span>
+                                    @endif
+                                    @if(request('date_to'))
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                            To: {{ request('date_to') }}
+                                            <a href="{{ route('admin.orders.index', request()->except('date_to')) }}" class="ml-2 text-green-600 hover:text-green-800">
+                                                <i class="fas fa-times"></i>
+                                            </a>
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+                    </form>
+                </div>
+
                 <!-- Orders Table -->
                 <div class="glass-effect rounded-2xl shadow-2xl overflow-hidden animate-fadeInUp" style="animation-delay: 0.2s;">
                     <div class="overflow-x-auto">
@@ -246,11 +381,25 @@
                                                 <div class="relative w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                                                     <i class="fas fa-shopping-bag text-gray-400 text-4xl"></i>
                                                 </div>
-                                                <h3 class="text-2xl font-black text-gray-900 mb-3">No orders found</h3>
-                                                <p class="text-gray-600 mb-8 font-medium">Get started by creating your first order.</p>
-                                                <a href="{{ route('admin.orders.create') }}" class="inline-flex items-center px-8 py-4 bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-600 text-white font-bold rounded-xl shadow-xl shadow-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/60 transform hover:scale-105 transition">
-                                                    <i class="fas fa-plus-circle mr-2 text-lg"></i>Create Order
-                                                </a>
+                                                <h3 class="text-2xl font-black text-gray-900 mb-3">
+                                                    @if(request()->anyFilled(['search', 'status', 'garment_type', 'date_from', 'date_to']))
+                                                        No orders found matching your filters
+                                                    @else
+                                                        No orders found
+                                                    @endif
+                                                </h3>
+                                                <p class="text-gray-600 mb-8 font-medium">
+                                                    @if(request()->anyFilled(['search', 'status', 'garment_type', 'date_from', 'date_to']))
+                                                        Try adjusting your search or filters, or <a href="{{ route('admin.orders.index') }}" class="text-indigo-600 font-bold hover:underline">clear all filters</a>.
+                                                    @else
+                                                        Get started by creating your first order.
+                                                    @endif
+                                                </p>
+                                                @if(!request()->anyFilled(['search', 'status', 'garment_type', 'date_from', 'date_to']))
+                                                    <a href="{{ route('admin.orders.create') }}" class="inline-flex items-center px-8 py-4 bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-600 text-white font-bold rounded-xl shadow-xl shadow-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/60 transform hover:scale-105 transition">
+                                                        <i class="fas fa-plus-circle mr-2 text-lg"></i>Create Order
+                                                    </a>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>

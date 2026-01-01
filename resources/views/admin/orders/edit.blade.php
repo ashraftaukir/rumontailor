@@ -110,7 +110,7 @@
 
                 <!-- Form Card -->
                 <div class="glass-effect rounded-2xl shadow-2xl p-8" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); animation: fadeInUp 0.6s ease-out forwards; animation-delay: 0.2s;">
-                    <form action="{{ route('admin.orders.update', $order) }}" method="POST">
+                    <form action="{{ route('admin.orders.update', $order) }}" method="POST" id="order-form" onsubmit="return validateForm()">
                         @csrf
                         @method('PUT')
 
@@ -181,23 +181,6 @@
                                 @enderror
                             </div>
 
-                            <!-- Total Amount -->
-                            <div>
-                                <label for="total_amount" class="block text-sm font-semibold text-gray-700 mb-2">
-                                    <i class="fas fa-coins text-indigo-600 mr-2"></i>Total Amount (৳) *
-                                </label>
-                                <div class="relative">
-                                    <span class="absolute left-4 top-3.5 text-gray-500">৳</span>
-                                    <input type="number" name="total_amount" id="total_amount" step="0.01" min="0" value="{{ old('total_amount', $order->total_amount) }}" required
-                                        class="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-                                </div>
-                                @error('total_amount')
-                                    <p class="mt-2 text-sm text-red-600 flex items-center">
-                                        <i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}
-                                    </p>
-                                @enderror
-                            </div>
-
                             <!-- Delivery Date -->
                             <div>
                                 <label for="delivery_date" class="block text-sm font-semibold text-gray-700 mb-2">
@@ -212,22 +195,17 @@
                                 @enderror
                             </div>
 
-                            <!-- Garment Type -->
+                            <!-- Total Amount (Auto-calculated) -->
                             <div>
-                                <label for="garment_type" class="block text-sm font-semibold text-gray-700 mb-2">
-                                    <i class="fas fa-tshirt text-indigo-600 mr-2"></i>Garment Type *
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-coins text-indigo-600 mr-2"></i>Total Amount (৳)
                                 </label>
-                                <select name="garment_type" id="garment_type" required
-                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-                                    <option value="shirt" {{ old('garment_type', $order->garment_type) == 'shirt' ? 'selected' : '' }}>👔 Shirt</option>
-                                    <option value="pant" {{ old('garment_type', $order->garment_type) == 'pant' ? 'selected' : '' }}>👖 Pant</option>
-                                    <option value="suit" {{ old('garment_type', $order->garment_type) == 'suit' ? 'selected' : '' }}>🤵 Suit</option>
-                                </select>
-                                @error('garment_type')
-                                    <p class="mt-2 text-sm text-red-600 flex items-center">
-                                        <i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}
-                                    </p>
-                                @enderror
+                                <div class="relative">
+                                    <span class="absolute left-4 top-3.5 text-gray-500">৳</span>
+                                    <input type="text" id="total_amount_display" value="{{ number_format($order->total_amount, 2) }}" readonly
+                                        class="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 font-bold text-lg">
+                                </div>
+                                <p class="mt-1 text-xs text-gray-500">Auto-calculated from items</p>
                             </div>
 
                             <!-- Description -->
@@ -261,8 +239,30 @@
                             </div>
                         </div>
 
-                        <!-- Measurements Section -->
-                        <div class="mt-8 pt-8 border-t-2 border-gray-200" id="measurements-section" style="display: {{ old('garment_type', $order->garment_type) ? 'block' : 'none' }};">
+                        <!-- Order Items Section -->
+                        <div class="mt-8 pt-8 border-t-2 border-gray-200">
+                            <div class="flex items-center justify-between mb-6">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mr-3">
+                                        <i class="fas fa-shopping-bag text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-900">Order Items</h3>
+                                        <p class="text-sm text-gray-600">Add one or more garments to this order</p>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="addOrderItem()" class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition">
+                                    <i class="fas fa-plus mr-2"></i>Add Item
+                                </button>
+                            </div>
+
+                            <div id="order-items-container">
+                                <!-- Items will be added here dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Old Measurements Section (Hidden, kept for backward compatibility) -->
+                        <div class="mt-8 pt-8 border-t-2 border-gray-200" id="measurements-section" style="display: none;">
                             <div class="flex items-center mb-6">
                                 <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mr-3">
                                     <i class="fas fa-ruler-combined text-white"></i>
@@ -545,59 +545,251 @@
                             </div>
                         </div>
 
-                        <!-- JavaScript to show/hide measurements based on garment type -->
+                        <!-- JavaScript for Multiple Items -->
                         <script>
-                            function updateMeasurementsDisplay() {
-                                const garmentType = document.getElementById('garment_type').value;
-                                const measurementsSection = document.getElementById('measurements-section');
-                                const shirtMeasurements = document.getElementById('shirt-measurements');
-                                const pantMeasurements = document.getElementById('pant-measurements');
-                                const suitMeasurements = document.getElementById('suit-measurements');
+                            let itemCounter = 0;
+                            const existingItems = @json($order->items ?? []);
+
+                            function addOrderItem(itemData = null) {
+                                const container = document.getElementById('order-items-container');
+                                const itemIndex = itemCounter++;
+                                const isExisting = itemData !== null;
                                 
-                                // Get all input fields in each section
-                                const shirtInputs = shirtMeasurements.querySelectorAll('input[type="number"]');
-                                const pantInputs = pantMeasurements.querySelectorAll('input[type="number"]');
-                                const suitInputs = suitMeasurements.querySelectorAll('input[type="number"]');
+                                const itemHtml = `
+                                    <div class="order-item mb-6 p-6 border-2 border-gray-200 rounded-xl bg-white/50" data-item-index="${itemIndex}">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <h4 class="text-lg font-bold text-gray-900 flex items-center">
+                                                <i class="fas fa-tshirt text-indigo-600 mr-2"></i>Item #${itemIndex + 1}
+                                            </h4>
+                                            <button type="button" onclick="removeOrderItem(this)" class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+
+                                        ${isExisting ? `<input type="hidden" name="items[${itemIndex}][id]" value="${itemData.id}">` : ''}
+
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                                    <i class="fas fa-tshirt text-indigo-600 mr-2"></i>Garment Type *
+                                                </label>
+                                                <select name="items[${itemIndex}][garment_type]" class="item-garment-type w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white" required onchange="updateItemMeasurements(${itemIndex}, this.value)">
+                                                    <option value="">Select type</option>
+                                                    <option value="shirt" ${itemData && itemData.garment_type === 'shirt' ? 'selected' : ''}>👔 Shirt</option>
+                                                    <option value="pant" ${itemData && itemData.garment_type === 'pant' ? 'selected' : ''}>👖 Pant</option>
+                                                    <option value="suit" ${itemData && itemData.garment_type === 'suit' ? 'selected' : ''}>🤵 Suit</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                                    <i class="fas fa-coins text-indigo-600 mr-2"></i>Price (৳) *
+                                                </label>
+                                                <div class="relative">
+                                                    <span class="absolute left-4 top-3.5 text-gray-500">৳</span>
+                                                    <input type="number" name="items[${itemIndex}][price]" step="0.01" min="0" value="${itemData ? itemData.price : '0'}" required
+                                                        class="item-price w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white"
+                                                        onchange="calculateTotal()">
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                                    <i class="fas fa-align-left text-indigo-600 mr-2"></i>Description
+                                                </label>
+                                                <input type="text" name="items[${itemIndex}][description]" value="${itemData ? (itemData.description || '') : ''}"
+                                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white"
+                                                    placeholder="Item description...">
+                                            </div>
+                                        </div>
+
+                                        <!-- Measurements for this item -->
+                                        <div class="item-measurements-${itemIndex} mt-4" style="display: ${itemData && itemData.garment_type ? 'block' : 'none'};">
+                                            <h5 class="text-md font-semibold text-gray-800 mb-3 flex items-center">
+                                                <i class="fas fa-ruler-combined text-purple-600 mr-2"></i>Measurements (in inches)
+                                            </h5>
+                                            
+                                            <!-- Shirt Measurements -->
+                                            <div class="item-shirt-measurements-${itemIndex} grid grid-cols-1 md:grid-cols-3 gap-4" style="display: ${itemData && itemData.garment_type === 'shirt' ? 'grid' : 'none'};">
+                                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Chest</label>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][chest]" step="0.01" min="0" value="${itemData ? (itemData.chest || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Waist</label>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][waist]" step="0.01" min="0" value="${itemData ? (itemData.waist || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Shoulder Width</label>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][shoulder_width]" step="0.01" min="0" value="${itemData ? (itemData.shoulder_width || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Sleeve Length</label>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][sleeve_length]" step="0.01" min="0" value="${itemData ? (itemData.sleeve_length || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Shirt Length</label>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][shirt_length]" step="0.01" min="0" value="${itemData ? (itemData.shirt_length || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Neck</label>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][neck]" step="0.01" min="0" value="${itemData ? (itemData.neck || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Armhole</label>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][armhole]" step="0.01" min="0" value="${itemData ? (itemData.armhole || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Bicep</label>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][bicep]" step="0.01" min="0" value="${itemData ? (itemData.bicep || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Wrist</label>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][wrist]" step="0.01" min="0" value="${itemData ? (itemData.wrist || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                            </div>
+
+                                            <!-- Pant Measurements -->
+                                            <div class="item-pant-measurements-${itemIndex} grid grid-cols-1 md:grid-cols-3 gap-4" style="display: ${itemData && itemData.garment_type === 'pant' ? 'grid' : 'none'};">
+                                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Waist</label>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][waist]" step="0.01" min="0" value="${itemData ? (itemData.waist || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Hip</label>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][hip]" step="0.01" min="0" value="${itemData ? (itemData.hip || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Inseam</label>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][inseam]" step="0.01" min="0" value="${itemData ? (itemData.inseam || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Outseam</label>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][outseam]" step="0.01" min="0" value="${itemData ? (itemData.outseam || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Thigh</label>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][thigh]" step="0.01" min="0" value="${itemData ? (itemData.thigh || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Knee</label>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][knee]" step="0.01" min="0" value="${itemData ? (itemData.knee || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Ankle</label>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][ankle]" step="0.01" min="0" value="${itemData ? (itemData.ankle || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Pant Length</label>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][pant_length]" step="0.01" min="0" value="${itemData ? (itemData.pant_length || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                            </div>
+
+                                            <!-- Suit Measurements -->
+                                            <div class="item-suit-measurements-${itemIndex}" style="display: ${itemData && itemData.garment_type === 'suit' ? 'block' : 'none'};">
+                                                <div class="mb-4">
+                                                    <h6 class="text-sm font-semibold text-gray-700 mb-2">Jacket</h6>
+                                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Chest</label>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][chest]" step="0.01" min="0" value="${itemData ? (itemData.chest || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Waist</label>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][waist]" step="0.01" min="0" value="${itemData ? (itemData.waist || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Shoulder Width</label>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][shoulder_width]" step="0.01" min="0" value="${itemData ? (itemData.shoulder_width || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Sleeve Length</label>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][sleeve_length]" step="0.01" min="0" value="${itemData ? (itemData.sleeve_length || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Jacket Length</label>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][jacket_length]" step="0.01" min="0" value="${itemData ? (itemData.jacket_length || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <h6 class="text-sm font-semibold text-gray-700 mb-2">Pant</h6>
+                                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Hip</label>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][hip]" step="0.01" min="0" value="${itemData ? (itemData.hip || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Inseam</label>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][inseam]" step="0.01" min="0" value="${itemData ? (itemData.inseam || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Outseam</label>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][outseam]" step="0.01" min="0" value="${itemData ? (itemData.outseam || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Thigh</label>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][thigh]" step="0.01" min="0" value="${itemData ? (itemData.thigh || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Knee</label>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][knee]" step="0.01" min="0" value="${itemData ? (itemData.knee || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Ankle</label>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][ankle]" step="0.01" min="0" value="${itemData ? (itemData.ankle || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Pant Length</label>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][pant_length]" step="0.01" min="0" value="${itemData ? (itemData.pant_length || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-4">
+                                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                                <i class="fas fa-sticky-note text-indigo-600 mr-2"></i>Item Notes
+                                            </label>
+                                            <textarea name="items[${itemIndex}][notes]" rows="2"
+                                                class="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white"
+                                                placeholder="Additional notes for this item...">${itemData ? (itemData.notes || '') : ''}</textarea>
+                                        </div>
+                                    </div>
+                                `;
                                 
-                                if (garmentType) {
-                                    // Show measurements section
-                                    measurementsSection.style.display = 'block';
-                                    
-                                    // Hide all sections and disable their inputs
-                                    shirtMeasurements.style.display = 'none';
-                                    pantMeasurements.style.display = 'none';
-                                    suitMeasurements.style.display = 'none';
-                                    shirtInputs.forEach(input => input.disabled = true);
-                                    pantInputs.forEach(input => input.disabled = true);
-                                    suitInputs.forEach(input => input.disabled = true);
-                                    
-                                    // Show relevant section and enable its inputs
-                                    if (garmentType === 'shirt') {
-                                        shirtMeasurements.style.display = 'block';
-                                        shirtInputs.forEach(input => input.disabled = false);
-                                    } else if (garmentType === 'pant') {
-                                        pantMeasurements.style.display = 'block';
-                                        pantInputs.forEach(input => input.disabled = false);
-                                    } else if (garmentType === 'suit') {
-                                        suitMeasurements.style.display = 'block';
-                                        suitInputs.forEach(input => input.disabled = false);
+                                container.insertAdjacentHTML('beforeend', itemHtml);
+                                if (itemData && itemData.garment_type) {
+                                    updateItemMeasurements(itemIndex, itemData.garment_type);
+                                }
+                                calculateTotal();
+                            }
+
+                            function removeOrderItem(button) {
+                                const item = button.closest('.order-item');
+                                item.remove();
+                                renumberItems();
+                                calculateTotal();
+                            }
+
+                            function renumberItems() {
+                                const items = document.querySelectorAll('.order-item');
+                                items.forEach((item, index) => {
+                                    const header = item.querySelector('h4');
+                                    if (header) {
+                                        header.innerHTML = `<i class="fas fa-tshirt text-indigo-600 mr-2"></i>Item #${index + 1}`;
                                     }
-                                } else {
-                                    // Hide measurements section if no garment type selected
-                                    measurementsSection.style.display = 'none';
-                                    shirtInputs.forEach(input => input.disabled = true);
-                                    pantInputs.forEach(input => input.disabled = true);
-                                    suitInputs.forEach(input => input.disabled = true);
+                                });
+                            }
+
+                            function updateItemMeasurements(itemIndex, garmentType) {
+                                const measurementsDiv = document.querySelector(`.item-measurements-${itemIndex}`);
+                                const shirtDiv = document.querySelector(`.item-shirt-measurements-${itemIndex}`);
+                                const pantDiv = document.querySelector(`.item-pant-measurements-${itemIndex}`);
+                                const suitDiv = document.querySelector(`.item-suit-measurements-${itemIndex}`);
+
+                                if (garmentType && measurementsDiv) {
+                                    measurementsDiv.style.display = 'block';
+                                    if (shirtDiv) shirtDiv.style.display = 'none';
+                                    if (pantDiv) pantDiv.style.display = 'none';
+                                    if (suitDiv) suitDiv.style.display = 'none';
+
+                                    if (garmentType === 'shirt' && shirtDiv) {
+                                        shirtDiv.style.display = 'grid';
+                                    } else if (garmentType === 'pant' && pantDiv) {
+                                        pantDiv.style.display = 'grid';
+                                    } else if (garmentType === 'suit' && suitDiv) {
+                                        suitDiv.style.display = 'block';
+                                    }
+                                } else if (measurementsDiv) {
+                                    measurementsDiv.style.display = 'none';
                                 }
                             }
-                            
-                            // Run on page load to show existing measurements
+
+                            function calculateTotal() {
+                                const priceInputs = document.querySelectorAll('.item-price');
+                                let total = 0;
+                                priceInputs.forEach(input => {
+                                    total += parseFloat(input.value) || 0;
+                                });
+                                document.getElementById('total_amount_display').value = total.toFixed(2);
+                            }
+
+                            function validateForm() {
+                                const items = document.querySelectorAll('.order-item');
+                                if (items.length === 0) {
+                                    alert('Please add at least one item to the order.');
+                                    return false;
+                                }
+                                
+                                let hasValidItem = false;
+                                items.forEach(item => {
+                                    const garmentType = item.querySelector('.item-garment-type').value;
+                                    const price = item.querySelector('.item-price').value;
+                                    if (garmentType && price && parseFloat(price) > 0) {
+                                        hasValidItem = true;
+                                    }
+                                });
+                                
+                                if (!hasValidItem) {
+                                    alert('Please add at least one valid item with garment type and price.');
+                                    return false;
+                                }
+                                
+                                return true;
+                            }
+
+                            // Load existing items on page load
                             document.addEventListener('DOMContentLoaded', function() {
-                                updateMeasurementsDisplay();
+                                if (existingItems && existingItems.length > 0) {
+                                    existingItems.forEach(item => {
+                                        addOrderItem(item);
+                                    });
+                                } else {
+                                    addOrderItem();
+                                }
                             });
-                            
-                            // Run on garment type change
-                            document.getElementById('garment_type').addEventListener('change', updateMeasurementsDisplay);
                         </script>
 
                         <!-- Form Actions -->

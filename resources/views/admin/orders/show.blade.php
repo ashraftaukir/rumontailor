@@ -203,8 +203,125 @@
                     </div>
                 </div>
 
-                <!-- Measurements -->
-                @if($order->chest || $order->waist || $order->shoulder_width || $order->sleeve_length || $order->shirt_length || $order->jacket_length || $order->neck || $order->armhole || $order->bicep || $order->wrist || $order->hip || $order->inseam || $order->outseam || $order->thigh || $order->knee || $order->ankle || $order->pant_length)
+                <!-- Order Items -->
+                @if($order->items && $order->items->count() > 0)
+                    <div class="glass-effect rounded-2xl shadow-2xl p-6 mb-6 animate-fadeInUp" style="animation-delay: 0.3s;">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-shopping-bag text-white"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-900">Order Items</h3>
+                                    <p class="text-sm text-gray-600">{{ $order->items->count() }} {{ Str::plural('item', $order->items->count()) }} in this order</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            @foreach($order->items as $index => $item)
+                                <div class="border-2 border-gray-200 rounded-xl p-6 bg-white/50">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h4 class="text-lg font-bold text-gray-900 flex items-center">
+                                            <i class="fas fa-tshirt text-indigo-600 mr-2"></i>
+                                            Item #{{ $index + 1 }}: 
+                                            <span class="ml-2">
+                                                @if($item->garment_type == 'shirt') 👔 Shirt
+                                                @elseif($item->garment_type == 'pant') 👖 Pant
+                                                @elseif($item->garment_type == 'suit') 🤵 Suit
+                                                @else {{ ucfirst($item->garment_type) }}
+                                                @endif
+                                            </span>
+                                        </h4>
+                                        <div class="text-right">
+                                            <p class="text-sm text-gray-500">Price</p>
+                                            <p class="text-xl font-black text-indigo-600">৳{{ number_format($item->price, 2) }}</p>
+                                        </div>
+                                    </div>
+
+                                    @if($item->description)
+                                        <p class="text-gray-700 mb-4">{{ $item->description }}</p>
+                                    @endif
+
+                                    <!-- Item Measurements -->
+                                    @if($item->chest || $item->waist || $item->shoulder_width || $item->sleeve_length || $item->shirt_length || $item->jacket_length || $item->neck || $item->armhole || $item->bicep || $item->wrist || $item->hip || $item->inseam || $item->outseam || $item->thigh || $item->knee || $item->ankle || $item->pant_length)
+                                        <div class="mt-4 pt-4 border-t border-gray-200">
+                                            <h5 class="text-md font-semibold text-gray-800 mb-3 flex items-center">
+                                                <i class="fas fa-ruler-combined text-purple-600 mr-2"></i>Measurements
+                                            </h5>
+                                            
+                                            <!-- Shirt Measurements -->
+                                            @if($item->garment_type == 'shirt' && ($item->chest || $item->waist || $item->shoulder_width || $item->sleeve_length || $item->shirt_length || $item->neck || $item->armhole || $item->bicep || $item->wrist))
+                                                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                                    @if($item->chest)<div class="bg-blue-50 rounded-lg p-2 border border-blue-100"><p class="text-xs text-gray-500 mb-1">Chest</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->chest, 2) }}"</p></div>@endif
+                                                    @if($item->waist)<div class="bg-blue-50 rounded-lg p-2 border border-blue-100"><p class="text-xs text-gray-500 mb-1">Waist</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->waist, 2) }}"</p></div>@endif
+                                                    @if($item->shoulder_width)<div class="bg-blue-50 rounded-lg p-2 border border-blue-100"><p class="text-xs text-gray-500 mb-1">Shoulder Width</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->shoulder_width, 2) }}"</p></div>@endif
+                                                    @if($item->sleeve_length)<div class="bg-blue-50 rounded-lg p-2 border border-blue-100"><p class="text-xs text-gray-500 mb-1">Sleeve Length</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->sleeve_length, 2) }}"</p></div>@endif
+                                                    @if($item->shirt_length)<div class="bg-blue-50 rounded-lg p-2 border border-blue-100"><p class="text-xs text-gray-500 mb-1">Shirt Length</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->shirt_length, 2) }}"</p></div>@endif
+                                                    @if($item->neck)<div class="bg-blue-50 rounded-lg p-2 border border-blue-100"><p class="text-xs text-gray-500 mb-1">Neck</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->neck, 2) }}"</p></div>@endif
+                                                    @if($item->armhole)<div class="bg-blue-50 rounded-lg p-2 border border-blue-100"><p class="text-xs text-gray-500 mb-1">Armhole</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->armhole, 2) }}"</p></div>@endif
+                                                    @if($item->bicep)<div class="bg-blue-50 rounded-lg p-2 border border-blue-100"><p class="text-xs text-gray-500 mb-1">Bicep</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->bicep, 2) }}"</p></div>@endif
+                                                    @if($item->wrist)<div class="bg-blue-50 rounded-lg p-2 border border-blue-100"><p class="text-xs text-gray-500 mb-1">Wrist</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->wrist, 2) }}"</p></div>@endif
+                                                </div>
+                                            @endif
+
+                                            <!-- Pant Measurements -->
+                                            @if($item->garment_type == 'pant' && ($item->waist || $item->hip || $item->inseam || $item->outseam || $item->thigh || $item->knee || $item->ankle || $item->pant_length))
+                                                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                                    @if($item->waist)<div class="bg-green-50 rounded-lg p-2 border border-green-100"><p class="text-xs text-gray-500 mb-1">Waist</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->waist, 2) }}"</p></div>@endif
+                                                    @if($item->hip)<div class="bg-green-50 rounded-lg p-2 border border-green-100"><p class="text-xs text-gray-500 mb-1">Hip</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->hip, 2) }}"</p></div>@endif
+                                                    @if($item->inseam)<div class="bg-green-50 rounded-lg p-2 border border-green-100"><p class="text-xs text-gray-500 mb-1">Inseam</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->inseam, 2) }}"</p></div>@endif
+                                                    @if($item->outseam)<div class="bg-green-50 rounded-lg p-2 border border-green-100"><p class="text-xs text-gray-500 mb-1">Outseam</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->outseam, 2) }}"</p></div>@endif
+                                                    @if($item->thigh)<div class="bg-green-50 rounded-lg p-2 border border-green-100"><p class="text-xs text-gray-500 mb-1">Thigh</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->thigh, 2) }}"</p></div>@endif
+                                                    @if($item->knee)<div class="bg-green-50 rounded-lg p-2 border border-green-100"><p class="text-xs text-gray-500 mb-1">Knee</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->knee, 2) }}"</p></div>@endif
+                                                    @if($item->ankle)<div class="bg-green-50 rounded-lg p-2 border border-green-100"><p class="text-xs text-gray-500 mb-1">Ankle</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->ankle, 2) }}"</p></div>@endif
+                                                    @if($item->pant_length)<div class="bg-green-50 rounded-lg p-2 border border-green-100"><p class="text-xs text-gray-500 mb-1">Pant Length</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->pant_length, 2) }}"</p></div>@endif
+                                                </div>
+                                            @endif
+
+                                            <!-- Suit Measurements -->
+                                            @if($item->garment_type == 'suit')
+                                                @if($item->chest || $item->waist || $item->shoulder_width || $item->sleeve_length || $item->jacket_length)
+                                                    <div class="mb-4">
+                                                        <h6 class="text-sm font-semibold text-gray-700 mb-2">Jacket</h6>
+                                                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                                            @if($item->chest)<div class="bg-purple-50 rounded-lg p-2 border border-purple-100"><p class="text-xs text-gray-500 mb-1">Chest</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->chest, 2) }}"</p></div>@endif
+                                                            @if($item->waist)<div class="bg-purple-50 rounded-lg p-2 border border-purple-100"><p class="text-xs text-gray-500 mb-1">Waist</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->waist, 2) }}"</p></div>@endif
+                                                            @if($item->shoulder_width)<div class="bg-purple-50 rounded-lg p-2 border border-purple-100"><p class="text-xs text-gray-500 mb-1">Shoulder Width</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->shoulder_width, 2) }}"</p></div>@endif
+                                                            @if($item->sleeve_length)<div class="bg-purple-50 rounded-lg p-2 border border-purple-100"><p class="text-xs text-gray-500 mb-1">Sleeve Length</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->sleeve_length, 2) }}"</p></div>@endif
+                                                            @if($item->jacket_length)<div class="bg-purple-50 rounded-lg p-2 border border-purple-100"><p class="text-xs text-gray-500 mb-1">Jacket Length</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->jacket_length, 2) }}"</p></div>@endif
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                                @if($item->hip || $item->inseam || $item->outseam || $item->thigh || $item->knee || $item->ankle || $item->pant_length)
+                                                    <div>
+                                                        <h6 class="text-sm font-semibold text-gray-700 mb-2">Pant</h6>
+                                                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                                            @if($item->hip)<div class="bg-indigo-50 rounded-lg p-2 border border-indigo-100"><p class="text-xs text-gray-500 mb-1">Hip</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->hip, 2) }}"</p></div>@endif
+                                                            @if($item->inseam)<div class="bg-indigo-50 rounded-lg p-2 border border-indigo-100"><p class="text-xs text-gray-500 mb-1">Inseam</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->inseam, 2) }}"</p></div>@endif
+                                                            @if($item->outseam)<div class="bg-indigo-50 rounded-lg p-2 border border-indigo-100"><p class="text-xs text-gray-500 mb-1">Outseam</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->outseam, 2) }}"</p></div>@endif
+                                                            @if($item->thigh)<div class="bg-indigo-50 rounded-lg p-2 border border-indigo-100"><p class="text-xs text-gray-500 mb-1">Thigh</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->thigh, 2) }}"</p></div>@endif
+                                                            @if($item->knee)<div class="bg-indigo-50 rounded-lg p-2 border border-indigo-100"><p class="text-xs text-gray-500 mb-1">Knee</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->knee, 2) }}"</p></div>@endif
+                                                            @if($item->ankle)<div class="bg-indigo-50 rounded-lg p-2 border border-indigo-100"><p class="text-xs text-gray-500 mb-1">Ankle</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->ankle, 2) }}"</p></div>@endif
+                                                            @if($item->pant_length)<div class="bg-indigo-50 rounded-lg p-2 border border-indigo-100"><p class="text-xs text-gray-500 mb-1">Pant Length</p><p class="text-sm font-semibold text-gray-900">{{ number_format($item->pant_length, 2) }}"</p></div>@endif
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                            @endif
+                                        </div>
+                                    @endif
+
+                                    @if($item->notes)
+                                        <div class="mt-4 pt-4 border-t border-gray-200">
+                                            <p class="text-sm text-gray-600"><strong>Notes:</strong> {{ $item->notes }}</p>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @elseif($order->chest || $order->waist || $order->shoulder_width || $order->sleeve_length || $order->shirt_length || $order->jacket_length || $order->neck || $order->armhole || $order->bicep || $order->wrist || $order->hip || $order->inseam || $order->outseam || $order->thigh || $order->knee || $order->ankle || $order->pant_length)
+                    <!-- Fallback: Show old measurements format for backward compatibility -->
                     <div class="glass-effect rounded-2xl shadow-2xl p-6 mb-6 animate-fadeInUp" style="animation-delay: 0.3s;">
                         <div class="flex items-center justify-between mb-6">
                             <div class="flex items-center">

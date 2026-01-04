@@ -301,6 +301,27 @@
                                             </div>
                                         </div>
 
+                                        <!-- Hidden inputs for all measurement fields (always in DOM for form submission) -->
+                                        <div style="display: none;">
+                                            <input type="hidden" name="items[${itemIndex}][chest]" value="">
+                                            <input type="hidden" name="items[${itemIndex}][waist]" value="">
+                                            <input type="hidden" name="items[${itemIndex}][shoulder_width]" value="">
+                                            <input type="hidden" name="items[${itemIndex}][sleeve_length]" value="">
+                                            <input type="hidden" name="items[${itemIndex}][shirt_length]" value="">
+                                            <input type="hidden" name="items[${itemIndex}][jacket_length]" value="">
+                                            <input type="hidden" name="items[${itemIndex}][neck]" value="">
+                                            <input type="hidden" name="items[${itemIndex}][armhole]" value="">
+                                            <input type="hidden" name="items[${itemIndex}][bicep]" value="">
+                                            <input type="hidden" name="items[${itemIndex}][wrist]" value="">
+                                            <input type="hidden" name="items[${itemIndex}][hip]" value="">
+                                            <input type="hidden" name="items[${itemIndex}][inseam]" value="">
+                                            <input type="hidden" name="items[${itemIndex}][outseam]" value="">
+                                            <input type="hidden" name="items[${itemIndex}][thigh]" value="">
+                                            <input type="hidden" name="items[${itemIndex}][knee]" value="">
+                                            <input type="hidden" name="items[${itemIndex}][ankle]" value="">
+                                            <input type="hidden" name="items[${itemIndex}][pant_length]" value="">
+                                        </div>
+
                                         <!-- Measurements for this item -->
                                         <div class="item-measurements-${itemIndex} mt-4" style="display: none;">
                                             <h5 class="text-md font-semibold text-gray-800 mb-3 flex items-center">
@@ -310,43 +331,43 @@
                                             <!-- Shirt Measurements -->
                                             <div class="item-shirt-measurements-${itemIndex} grid grid-cols-1 md:grid-cols-3 gap-4" style="display: none;">
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Chest</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][chest]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][chest]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'chest', this.value)" oninput="syncMeasurementField(${itemIndex}, 'chest', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Waist</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][waist]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][waist]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'waist', this.value)" oninput="syncMeasurementField(${itemIndex}, 'waist', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Shoulder Width</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][shoulder_width]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][shoulder_width]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'shoulder_width', this.value)" oninput="syncMeasurementField(${itemIndex}, 'shoulder_width', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Sleeve Length</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][sleeve_length]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][sleeve_length]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'sleeve_length', this.value)" oninput="syncMeasurementField(${itemIndex}, 'sleeve_length', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Shirt Length</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][shirt_length]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][shirt_length]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'shirt_length', this.value)" oninput="syncMeasurementField(${itemIndex}, 'shirt_length', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Neck</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][neck]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][neck]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'neck', this.value)" oninput="syncMeasurementField(${itemIndex}, 'neck', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Armhole</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][armhole]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][armhole]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'armhole', this.value)" oninput="syncMeasurementField(${itemIndex}, 'armhole', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Bicep</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][bicep]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][bicep]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'bicep', this.value)" oninput="syncMeasurementField(${itemIndex}, 'bicep', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Wrist</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][wrist]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][wrist]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'wrist', this.value)" oninput="syncMeasurementField(${itemIndex}, 'wrist', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                             </div>
 
                                             <!-- Pant Measurements -->
                                             <div class="item-pant-measurements-${itemIndex} grid grid-cols-1 md:grid-cols-3 gap-4" style="display: none;">
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Waist</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][waist]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][waist]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'waist', this.value)" oninput="syncMeasurementField(${itemIndex}, 'waist', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Hip</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][hip]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][hip]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'hip', this.value)" oninput="syncMeasurementField(${itemIndex}, 'hip', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Inseam</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][inseam]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][inseam]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'inseam', this.value)" oninput="syncMeasurementField(${itemIndex}, 'inseam', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Outseam</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][outseam]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][outseam]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'outseam', this.value)" oninput="syncMeasurementField(${itemIndex}, 'outseam', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Thigh</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][thigh]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][thigh]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'thigh', this.value)" oninput="syncMeasurementField(${itemIndex}, 'thigh', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Knee</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][knee]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][knee]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'knee', this.value)" oninput="syncMeasurementField(${itemIndex}, 'knee', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Ankle</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][ankle]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][ankle]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'ankle', this.value)" oninput="syncMeasurementField(${itemIndex}, 'ankle', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Pant Length</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][pant_length]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][pant_length]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'pant_length', this.value)" oninput="syncMeasurementField(${itemIndex}, 'pant_length', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                             </div>
 
                                             <!-- Suit Measurements -->
@@ -355,15 +376,15 @@
                                                     <h6 class="text-sm font-semibold text-gray-700 mb-2">Jacket</h6>
                                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Chest</label>
-                                                            <div class="relative"><input type="number" name="items[${itemIndex}][chest]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][chest]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'chest', this.value)" oninput="syncMeasurementField(${itemIndex}, 'chest', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Waist</label>
-                                                            <div class="relative"><input type="number" name="items[${itemIndex}][waist]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][waist]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'waist', this.value)" oninput="syncMeasurementField(${itemIndex}, 'waist', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Shoulder Width</label>
-                                                            <div class="relative"><input type="number" name="items[${itemIndex}][shoulder_width]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][shoulder_width]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'shoulder_width', this.value)" oninput="syncMeasurementField(${itemIndex}, 'shoulder_width', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Sleeve Length</label>
-                                                            <div class="relative"><input type="number" name="items[${itemIndex}][sleeve_length]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][sleeve_length]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'sleeve_length', this.value)" oninput="syncMeasurementField(${itemIndex}, 'sleeve_length', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Jacket Length</label>
-                                                            <div class="relative"><input type="number" name="items[${itemIndex}][jacket_length]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][jacket_length]" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'jacket_length', this.value)" oninput="syncMeasurementField(${itemIndex}, 'jacket_length', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                     </div>
                                                 </div>
                                                 <div>
@@ -444,6 +465,53 @@
                                 }
                             }
 
+                            // Sync measurement field value to hidden input
+                            function syncMeasurementField(itemIndex, field, value) {
+                                // Find the item container - try multiple methods
+                                let itemContainer = document.querySelector(`.order-item[data-item-index="${itemIndex}"]`);
+                                
+                                if (!itemContainer) {
+                                    // Try to find by garment type selector
+                                    const garmentSelect = document.querySelector(`select[name="items[${itemIndex}][garment_type]"]`);
+                                    if (garmentSelect) {
+                                        itemContainer = garmentSelect.closest('.order-item');
+                                    }
+                                }
+                                
+                                if (!itemContainer) {
+                                    // Try to find by any input with this item index
+                                    const anyInput = document.querySelector(`input[name="items[${itemIndex}][garment_type]"]`);
+                                    if (anyInput) {
+                                        itemContainer = anyInput.closest('.order-item');
+                                    }
+                                }
+                                
+                                if (itemContainer) {
+                                    // Find ALL hidden inputs with this name
+                                    const allHiddenInputs = itemContainer.querySelectorAll(`input[type="hidden"][name="items[${itemIndex}][${field}]"]`);
+                                    
+                                    if (allHiddenInputs.length > 0) {
+                                        // Update the FIRST hidden input (the one from template)
+                                        allHiddenInputs[0].value = value || '';
+                                        console.log(`Synced ${field} for item ${itemIndex}: ${value || '(empty)'}`);
+                                        // Remove any duplicate hidden inputs
+                                        for (let i = 1; i < allHiddenInputs.length; i++) {
+                                            allHiddenInputs[i].remove();
+                                        }
+                                    } else {
+                                        // No hidden input exists, create one
+                                        const hiddenField = document.createElement('input');
+                                        hiddenField.type = 'hidden';
+                                        hiddenField.name = `items[${itemIndex}][${field}]`;
+                                        hiddenField.value = value || '';
+                                        itemContainer.appendChild(hiddenField);
+                                        console.log(`Created hidden input for ${field} in item ${itemIndex}: ${value || '(empty)'}`);
+                                    }
+                                } else {
+                                    console.warn(`Could not find item container for index ${itemIndex}`);
+                                }
+                            }
+
                             function calculateTotal() {
                                 const priceInputs = document.querySelectorAll('.item-price');
                                 let total = 0;
@@ -453,8 +521,201 @@
                                 document.getElementById('total_amount_display').value = total.toFixed(2);
                             }
 
-                            function validateForm() {
+                            // Ensure all measurement fields are included in form submission
+                            function ensureAllMeasurementFields() {
                                 const items = document.querySelectorAll('.order-item');
+                                const measurementFields = [
+                                    'chest', 'waist', 'shoulder_width', 'sleeve_length', 'shirt_length', 'jacket_length',
+                                    'neck', 'armhole', 'bicep', 'wrist', 'hip', 'inseam', 'outseam',
+                                    'thigh', 'knee', 'ankle', 'pant_length'
+                                ];
+                                
+                                items.forEach((item) => {
+                                    // Extract the actual item index from the first form field in this item
+                                    const firstInput = item.querySelector('input[name^="items["]');
+                                    if (!firstInput) return;
+                                    
+                                    // Extract index from name like "items[0][garment_type]" -> 0
+                                    const nameMatch = firstInput.name.match(/items\[(\d+)\]/);
+                                    if (!nameMatch) return;
+                                    
+                                    const itemIndex = parseInt(nameMatch[1]);
+                                    
+                                    measurementFields.forEach(field => {
+                                        const fieldName = `items[${itemIndex}][${field}]`;
+                                        
+                                        // Find visible input (number type)
+                                        const visibleInput = item.querySelector(`input[type="number"][name="${fieldName}"]`);
+                                        // Find or create hidden input
+                                        let hiddenInput = item.querySelector(`input[type="hidden"][name="${fieldName}"]`);
+                                        
+                                        // Get value from visible input if it exists
+                                        let valueToSubmit = '';
+                                        if (visibleInput) {
+                                            valueToSubmit = visibleInput.value || '';
+                                        }
+                                        
+                                        // Find ALL hidden inputs with this name (there might be multiple)
+                                        const allHiddenInputs = item.querySelectorAll(`input[type="hidden"][name="${fieldName}"]`);
+                                        
+                                        if (allHiddenInputs.length > 0) {
+                                            // Update the FIRST hidden input (the one from template)
+                                            allHiddenInputs[0].value = valueToSubmit;
+                                            // Remove any duplicate hidden inputs
+                                            for (let i = 1; i < allHiddenInputs.length; i++) {
+                                                allHiddenInputs[i].remove();
+                                            }
+                                        } else {
+                                            // No hidden input exists, create one
+                                            hiddenInput = document.createElement('input');
+                                            hiddenInput.type = 'hidden';
+                                            hiddenInput.name = fieldName;
+                                            hiddenInput.value = valueToSubmit;
+                                            item.appendChild(hiddenInput);
+                                        }
+                                        
+                                        // ALWAYS remove visible input to avoid duplicate submission
+                                        // The hidden input will be submitted instead
+                                        if (visibleInput) {
+                                            visibleInput.remove();
+                                        }
+                                    });
+                                });
+                            }
+
+                            function validateForm() {
+                                // CRITICAL: Do final sync BEFORE ensureAllMeasurementFields
+                                // This ensures we capture values from visible inputs before they're removed
+                                console.log('=== FINAL SYNC BEFORE SUBMISSION ===');
+                                const items = document.querySelectorAll('.order-item');
+                                const measurementFields = ['chest', 'waist', 'shoulder_width', 'sleeve_length', 'shirt_length', 'jacket_length', 'neck', 'armhole', 'bicep', 'wrist', 'hip', 'inseam', 'outseam', 'thigh', 'knee', 'ankle', 'pant_length'];
+                                
+                                items.forEach((item) => {
+                                    const firstInput = item.querySelector('input[name^="items["]');
+                                    if (firstInput) {
+                                        const nameMatch = firstInput.name.match(/items\[(\d+)\]/);
+                                        if (nameMatch) {
+                                            const itemIndex = parseInt(nameMatch[1]);
+                                            
+                                            // Final sync: Check all fields one more time
+                                            measurementFields.forEach(field => {
+                                                const fieldName = `items[${itemIndex}][${field}]`;
+                                                
+                                                // Find ALL inputs with this name (both visible and hidden)
+                                                const allInputs = item.querySelectorAll(`input[name="${fieldName}"]`);
+                                                let value = '';
+                                                let visibleInput = null;
+                                                
+                                                // First priority: Get value from visible input (number type)
+                                                // This is the source of truth - user typed it in
+                                                allInputs.forEach(input => {
+                                                    if (input.type === 'number') {
+                                                        visibleInput = input;
+                                                        const inputValue = input.value || '';
+                                                        if (inputValue !== '' && (!value || value === '')) {
+                                                            value = inputValue;
+                                                            console.log(`Final sync: Found value in visible input items[${itemIndex}][${field}] = "${value}"`);
+                                                        }
+                                                    }
+                                                });
+                                                
+                                                // Second priority: If no visible input value, check existing hidden input
+                                                if (!value || value === '') {
+                                                    allInputs.forEach(input => {
+                                                        if (input.type === 'hidden' && input.value && input.value !== '') {
+                                                            value = input.value;
+                                                            console.log(`Final sync: Using existing hidden value items[${itemIndex}][${field}] = "${value}"`);
+                                                        }
+                                                    });
+                                                }
+                                                
+                                                // Find ALL hidden inputs with this name
+                                                const allHiddenInputs = item.querySelectorAll(`input[type="hidden"][name="${fieldName}"]`);
+                                                
+                                                if (allHiddenInputs.length > 0) {
+                                                    // Update the FIRST hidden input (the one from template)
+                                                    allHiddenInputs[0].value = value;
+                                                    console.log(`Final sync: Updated hidden input items[${itemIndex}][${field}] = "${value}"`);
+                                                    // Remove any duplicate hidden inputs
+                                                    for (let i = 1; i < allHiddenInputs.length; i++) {
+                                                        allHiddenInputs[i].remove();
+                                                    }
+                                                } else {
+                                                    // No hidden input exists, create one
+                                                    const hiddenInput = document.createElement('input');
+                                                    hiddenInput.type = 'hidden';
+                                                    hiddenInput.name = fieldName;
+                                                    hiddenInput.value = value;
+                                                    item.appendChild(hiddenInput);
+                                                    console.log(`Final sync: Created hidden input items[${itemIndex}][${field}] = "${value}"`);
+                                                }
+                                                
+                                                // Remove ALL visible inputs to avoid duplicates
+                                                if (visibleInput) {
+                                                    visibleInput.remove();
+                                                }
+                                            });
+                                        }
+                                    }
+                                });
+                                
+                                // Now run ensureAllMeasurementFields as a backup
+                                console.log('=== RUNNING ensureAllMeasurementFields AS BACKUP ===');
+                                ensureAllMeasurementFields();
+                                
+                                // Debug: Collect and display all measurement fields that will be submitted
+                                let debugInfo = '=== MEASUREMENT DATA BEING SUBMITTED ===\n\n';
+                                
+                                items.forEach((item, idx) => {
+                                    const firstInput = item.querySelector('input[name^="items["]');
+                                    if (firstInput) {
+                                        const nameMatch = firstInput.name.match(/items\[(\d+)\]/);
+                                        if (nameMatch) {
+                                            const itemIndex = parseInt(nameMatch[1]);
+                                            const garmentType = item.querySelector('.item-garment-type')?.value || 'unknown';
+                                            const values = {};
+                                            let hasAnyValue = false;
+                                            
+                                            measurementFields.forEach(field => {
+                                                // Check hidden inputs only (visible ones should be removed)
+                                                const input = item.querySelector(`input[type="hidden"][name="items[${itemIndex}][${field}]"]`);
+                                                if (input) {
+                                                    const val = input.value;
+                                                    if (val && val !== '') {
+                                                        values[field] = val;
+                                                        hasAnyValue = true;
+                                                    }
+                                                }
+                                            });
+                                            
+                                            debugInfo += `Item #${itemIndex + 1} (${garmentType}):\n`;
+                                            if (hasAnyValue) {
+                                                Object.keys(values).forEach(field => {
+                                                    debugInfo += `  ${field}: ${values[field]}\n`;
+                                                });
+                                            } else {
+                                                debugInfo += `  ⚠️ NO MEASUREMENT VALUES FOUND!\n`;
+                                            }
+                                            debugInfo += '\n';
+                                            
+                                            console.log(`Item ${itemIndex} (${garmentType}) measurement values:`, values);
+                                            console.table(values);
+                                        }
+                                    }
+                                });
+                                
+                                // Show debug info in console and alert
+                                console.log(debugInfo);
+                                console.warn('=== CHECK THE CONSOLE ABOVE FOR DETAILED DATA ===');
+                                
+                                // Show a brief alert with summary (user can cancel to see console)
+                                const itemCount = items.length;
+                                const proceed = confirm(`About to submit ${itemCount} item(s).\n\nClick OK to submit, or Cancel to check the browser console (F12) for detailed measurement data.\n\n${debugInfo.split('\n').slice(0, 10).join('\n')}...\n\n(Check console for full details)`);
+                                
+                                if (!proceed) {
+                                    return false; // User cancelled to check console
+                                }
+                                
                                 if (items.length === 0) {
                                     alert('Please add at least one item to the order.');
                                     return false;

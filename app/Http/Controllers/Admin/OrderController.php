@@ -8,6 +8,7 @@ use App\Models\OrderItem;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -74,6 +75,9 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
+        // Debug: Log raw request data
+        \Log::info('Order Store - Raw request data:', ['request' => $request->all()]);
+        
         // Validate order basic info
         $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
@@ -110,42 +114,79 @@ class OrderController extends Controller
         // Calculate total amount from items
         $totalAmount = collect($validated['items'])->sum('price');
 
-        // Create order
-        $order = Order::create([
-            'customer_id' => $validated['customer_id'],
-            'order_number' => $this->generateOrderNumber(),
-            'order_date' => $validated['order_date'],
-            'status' => $validated['status'],
-            'total_amount' => $totalAmount,
-            'description' => $validated['description'] ?? null,
-            'delivery_date' => $validated['delivery_date'] ?? null,
-            'notes' => $validated['notes'] ?? null,
-            // Keep garment_type for backward compatibility (use first item's type)
-            'garment_type' => $validated['items'][0]['garment_type'],
-        ]);
-
-        // Create order items
+        // Define all measurement fields
         $measurementFields = [
             'chest', 'waist', 'shoulder_width', 'sleeve_length', 'shirt_length', 'jacket_length',
             'neck', 'armhole', 'bicep', 'wrist', 'hip', 'inseam', 'outseam',
             'thigh', 'knee', 'ankle', 'pant_length'
         ];
 
-        foreach ($validated['items'] as $itemData) {
-            $itemMeasurements = [];
+        // Debug: Log what we received from validation
+        \Log::info('Order Store - Validated items data:', ['items' => $validated['items']]);
+
+        // Normalize items data - ensure all measurement fields are present
+        $normalizedItems = [];
+        foreach ($validated['items'] as $index => $itemData) {
+            $normalizedItem = $itemData;
+            // Ensure all measurement fields are present in the array
             foreach ($measurementFields as $field) {
-                $itemMeasurements[$field] = $itemData[$field] ?? null;
+                if (!isset($normalizedItem[$field])) {
+                    $normalizedItem[$field] = null;
+                }
+            }
+            \Log::info("Order Store - Normalized item {$index}:", ['item' => $normalizedItem]);
+            $normalizedItems[] = $normalizedItem;
+        }
+
+        // Use database transaction to ensure data consistency
+        $order = DB::transaction(function () use ($normalizedItems, $validated, $totalAmount, $measurementFields) {
+            // Create order
+            $order = Order::create([
+                'customer_id' => $validated['customer_id'],
+                'order_number' => $this->generateOrderNumber(),
+                'order_date' => $validated['order_date'],
+                'status' => $validated['status'],
+                'total_amount' => $totalAmount,
+                'description' => $validated['description'] ?? null,
+                'delivery_date' => $validated['delivery_date'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+                // Keep garment_type for backward compatibility (use first item's type)
+                'garment_type' => $validated['items'][0]['garment_type'],
+            ]);
+
+            // Create order items
+            foreach ($normalizedItems as $itemIndex => $itemData) {
+                $itemMeasurements = [];
+                foreach ($measurementFields as $field) {
+                    // Get the value from validated data, defaulting to null if not present
+                    $value = $itemData[$field] ?? null;
+                    
+                    // Convert empty strings, null, or falsy values to null
+                    // Also ensure numeric values are properly cast
+                    if ($value === '' || $value === null || $value === false) {
+                        $itemMeasurements[$field] = null;
+                    } else {
+                        // Cast to float to ensure proper decimal handling
+                        $itemMeasurements[$field] = is_numeric($value) ? (float) $value : null;
+                    }
+                }
+                
+                \Log::info("Order Store - Item {$itemIndex} measurements to save:", ['measurements' => $itemMeasurements]);
+
+                $orderItem = OrderItem::create([
+                    'order_id' => $order->id,
+                    'garment_type' => $itemData['garment_type'],
+                    'price' => $itemData['price'],
+                    'description' => isset($itemData['description']) && trim($itemData['description']) !== '' ? trim($itemData['description']) : null,
+                    'notes' => isset($itemData['notes']) && trim($itemData['notes']) !== '' ? trim($itemData['notes']) : null,
+                    ...$itemMeasurements
+                ]);
+                
+                \Log::info("Order Store - Created order item ID {$orderItem->id}:", ['item' => $orderItem->toArray()]);
             }
 
-            OrderItem::create([
-                'order_id' => $order->id,
-                'garment_type' => $itemData['garment_type'],
-                'price' => $itemData['price'],
-                'description' => $itemData['description'] ?? null,
-                'notes' => $itemData['notes'] ?? null,
-                ...$itemMeasurements
-            ]);
-        }
+            return $order;
+        });
 
         return redirect()
             ->route('admin.orders.index')
@@ -176,6 +217,9 @@ class OrderController extends Controller
      */
     public function update(Request $request, Order $order)
     {
+        // Debug: Log raw request data
+        \Log::info('Order Update - Raw request data:', ['request' => $request->all()]);
+        
         // Validate order basic info
         $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
@@ -185,7 +229,14 @@ class OrderController extends Controller
             'description' => 'nullable|string',
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
-            'items.*.id' => 'nullable|exists:order_items,id',
+            'items.*.id' => [
+                'nullable',
+                function ($attribute, $value, $fail) use ($order) {
+                    if ($value && !$order->items()->where('id', $value)->exists()) {
+                        $fail('The selected item does not belong to this order.');
+                    }
+                },
+            ],
             'items.*.garment_type' => 'required|in:shirt,pant,suit',
             'items.*.price' => 'required|numeric|min:0',
             'items.*.description' => 'nullable|string',
@@ -213,53 +264,107 @@ class OrderController extends Controller
         // Calculate total amount from items
         $totalAmount = collect($validated['items'])->sum('price');
 
-        // Update order
-        $order->update([
-            'customer_id' => $validated['customer_id'],
-            'order_date' => $validated['order_date'],
-            'status' => $validated['status'],
-            'total_amount' => $totalAmount,
-            'description' => $validated['description'] ?? null,
-            'delivery_date' => $validated['delivery_date'] ?? null,
-            'notes' => $validated['notes'] ?? null,
-            'garment_type' => $validated['items'][0]['garment_type'], // For backward compatibility
-        ]);
-
-        // Get existing item IDs
-        $existingItemIds = collect($validated['items'])->pluck('id')->filter()->toArray();
-        
-        // Delete items that are no longer in the request
-        $order->items()->whereNotIn('id', $existingItemIds)->delete();
-
-        // Create or update order items
+        // Define all measurement fields
         $measurementFields = [
             'chest', 'waist', 'shoulder_width', 'sleeve_length', 'shirt_length', 'jacket_length',
             'neck', 'armhole', 'bicep', 'wrist', 'hip', 'inseam', 'outseam',
             'thigh', 'knee', 'ankle', 'pant_length'
         ];
 
-        foreach ($validated['items'] as $itemData) {
+        // Debug: Log validated items data
+        \Log::info('Order Update - Validated items data:', ['items' => $validated['items']]);
+        
+        // Normalize items data - ensure all measurement fields are present
+        $normalizedItems = [];
+        foreach ($validated['items'] as $index => $itemData) {
+            $normalizedItem = $itemData;
+            // Ensure all measurement fields are present in the array
+            foreach ($measurementFields as $field) {
+                if (!isset($normalizedItem[$field])) {
+                    $normalizedItem[$field] = null;
+                }
+            }
+            \Log::info("Order Update - Normalized item {$index}:", ['item' => $normalizedItem]);
+            $normalizedItems[] = $normalizedItem;
+        }
+
+        // Use database transaction to ensure data consistency
+        DB::transaction(function () use ($order, $normalizedItems, $validated, $totalAmount, $measurementFields) {
+            // Update order
+            $order->update([
+                'customer_id' => $validated['customer_id'],
+                'order_date' => $validated['order_date'],
+                'status' => $validated['status'],
+                'total_amount' => $totalAmount,
+                'description' => $validated['description'] ?? null,
+                'delivery_date' => $validated['delivery_date'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+                'garment_type' => $validated['items'][0]['garment_type'], // For backward compatibility
+            ]);
+
+            // Get existing item IDs
+            $existingItemIds = collect($normalizedItems)->pluck('id')->filter()->toArray();
+            
+            // Delete items that are no longer in the request
+            // Only delete if we have existing items to preserve, otherwise delete all existing items
+            if (!empty($existingItemIds)) {
+                $order->items()->whereNotIn('id', $existingItemIds)->delete();
+            } else {
+                // If no existing item IDs are provided, delete all existing items (all items are new)
+                $order->items()->delete();
+            }
+
+            // Create or update order items
+            foreach ($normalizedItems as $itemData) {
             $itemMeasurements = [];
             foreach ($measurementFields as $field) {
-                $itemMeasurements[$field] = $itemData[$field] ?? null;
+                // Get the value from validated data, defaulting to null if not present
+                $value = $itemData[$field] ?? null;
+                
+                // Convert empty strings, null, or falsy values to null
+                // Also ensure numeric values are properly cast
+                if ($value === '' || $value === null || $value === false) {
+                    $itemMeasurements[$field] = null;
+                } else {
+                    // Cast to float to ensure proper decimal handling
+                    $itemMeasurements[$field] = is_numeric($value) ? (float) $value : null;
+                }
             }
 
             $itemDataToSave = [
                 'garment_type' => $itemData['garment_type'],
                 'price' => $itemData['price'],
-                'description' => $itemData['description'] ?? null,
-                'notes' => $itemData['notes'] ?? null,
+                'description' => isset($itemData['description']) && trim($itemData['description']) !== '' ? trim($itemData['description']) : null,
+                'notes' => isset($itemData['notes']) && trim($itemData['notes']) !== '' ? trim($itemData['notes']) : null,
                 ...$itemMeasurements
             ];
 
             if (isset($itemData['id']) && $itemData['id']) {
-                // Update existing item
-                $order->items()->where('id', $itemData['id'])->update($itemDataToSave);
+                // Update existing item - use model instance to ensure all fields are updated
+                $existingItem = $order->items()->where('id', $itemData['id'])->first();
+                if ($existingItem) {
+                    \Log::info("Order Update - Updating item ID {$itemData['id']}:", [
+                        'before' => $existingItem->toArray(),
+                        'data_to_save' => $itemDataToSave
+                    ]);
+                    
+                    // Use fill() and save() to ensure all fields are properly updated
+                    $existingItem->fill($itemDataToSave);
+                    $existingItem->save();
+                    
+                    // Refresh and verify the update
+                    $existingItem->refresh();
+                    \Log::info("Order Update - Item ID {$itemData['id']} after update:", ['item' => $existingItem->toArray()]);
+                } else {
+                    \Log::warning("Order Update - Item ID {$itemData['id']} not found for order {$order->id}");
+                }
             } else {
                 // Create new item
+                \Log::info("Order Update - Creating new item:", ['data' => $itemDataToSave]);
                 $order->items()->create($itemDataToSave);
             }
         }
+        });
 
         return redirect()
             ->route('admin.orders.index')

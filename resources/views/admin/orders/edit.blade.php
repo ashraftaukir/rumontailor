@@ -548,7 +548,100 @@
                         <!-- JavaScript for Multiple Items -->
                         <script>
                             let itemCounter = 0;
-                            const existingItems = @json($order->items ?? []);
+                            @php
+                                $existingItemsData = [];
+                                if ($order->items) {
+                                    $measurementFields = [
+                                        'chest', 'waist', 'shoulder_width', 'sleeve_length', 'shirt_length', 'jacket_length',
+                                        'neck', 'armhole', 'bicep', 'wrist', 'hip', 'inseam', 'outseam',
+                                        'thigh', 'knee', 'ankle', 'pant_length'
+                                    ];
+                                    
+                                    foreach ($order->items as $item) {
+                                        // Get raw attributes to ensure we capture all values
+                                        $attributes = $item->getAttributes();
+                                        
+                                        $itemArray = [
+                                            'id' => $item->id,
+                                            'garment_type' => $item->garment_type,
+                                            'price' => $item->price !== null ? (string) $item->price : '',
+                                            'description' => $item->description ?? '',
+                                            'notes' => $item->notes ?? '',
+                                        ];
+                                        
+                                        // Explicitly include all measurement fields - ensure we get all values
+                                        foreach ($measurementFields as $field) {
+                                            // Get the attribute value - this handles Laravel's casting
+                                            $value = $item->getAttribute($field);
+                                            
+                                            // Convert to string for JavaScript/JSON
+                                            // Handle null, empty string, or false as empty string
+                                            if ($value === null || $value === '' || $value === false) {
+                                                $itemArray[$field] = '';
+                                            } else {
+                                                // Convert to string - Laravel's decimal cast returns string already
+                                                $itemArray[$field] = (string)$value;
+                                            }
+                                        }
+                                        
+                                        $existingItemsData[] = $itemArray;
+                                    }
+                                }
+                            @endphp
+                            const existingItems = @json($existingItemsData);
+                            
+                            console.log('=== EXISTING ITEMS DEBUG ===');
+                            console.log('Order ID:', {{ $order->id }});
+                            console.log('Items count from backend:', {{ $order->items ? $order->items->count() : 0 }});
+                            console.log('Existing items data:', existingItems);
+                            console.log('Existing items array length:', existingItems ? existingItems.length : 0);
+                            
+                            // Debug each item individually - show ALL measurement fields
+                            if (existingItems && existingItems.length > 0) {
+                                existingItems.forEach((item, idx) => {
+                                    console.log(`=== Item ${idx + 1} (${item.garment_type}) - Full Data ===`);
+                                    console.log('ID:', item.id);
+                                    console.log('Garment Type:', item.garment_type);
+                                    console.log('Price:', item.price);
+                                    console.log('Description:', item.description);
+                                    console.log('Notes:', item.notes);
+                                    console.log('--- Shirt Measurements ---');
+                                    console.log('  chest:', item.chest, '(type:', typeof item.chest, ')');
+                                    console.log('  waist:', item.waist, '(type:', typeof item.waist, ')');
+                                    console.log('  shoulder_width:', item.shoulder_width, '(type:', typeof item.shoulder_width, ')');
+                                    console.log('  sleeve_length:', item.sleeve_length, '(type:', typeof item.sleeve_length, ')');
+                                    console.log('  shirt_length:', item.shirt_length, '(type:', typeof item.shirt_length, ')');
+                                    console.log('  neck:', item.neck, '(type:', typeof item.neck, ')');
+                                    console.log('  armhole:', item.armhole, '(type:', typeof item.armhole, ')');
+                                    console.log('  bicep:', item.bicep, '(type:', typeof item.bicep, ')');
+                                    console.log('  wrist:', item.wrist, '(type:', typeof item.wrist, ')');
+                                    console.log('--- Pant Measurements ---');
+                                    console.log('  hip:', item.hip, '(type:', typeof item.hip, ')');
+                                    console.log('  inseam:', item.inseam, '(type:', typeof item.inseam, ')');
+                                    console.log('  outseam:', item.outseam, '(type:', typeof item.outseam, ')');
+                                    console.log('  thigh:', item.thigh, '(type:', typeof item.thigh, ')');
+                                    console.log('  knee:', item.knee, '(type:', typeof item.knee, ')');
+                                    console.log('  ankle:', item.ankle, '(type:', typeof item.ankle, ')');
+                                    console.log('  pant_length:', item.pant_length, '(type:', typeof item.pant_length, ')');
+                                    console.log('--- Full Object ---');
+                                    console.log(item);
+                                });
+                            }
+                            
+                            // Helper function to safely get field value (handles null, undefined, empty string)
+                            function getFieldValue(itemData, field) {
+                                if (!itemData) return '';
+                                const value = itemData[field];
+                                // Handle null, undefined, empty string, or empty array
+                                if (value === null || value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) {
+                                    return '';
+                                }
+                                // For numeric values, ensure they're properly formatted
+                                if (typeof value === 'number' || (!isNaN(value) && value !== '')) {
+                                    return String(value);
+                                }
+                                return String(value);
+                            }
 
                             function addOrderItem(itemData = null) {
                                 const container = document.getElementById('order-items-container');
@@ -568,6 +661,27 @@
 
                                         ${isExisting ? `<input type="hidden" name="items[${itemIndex}][id]" value="${itemData.id}">` : ''}
 
+                                        <!-- Hidden inputs for all measurement fields (always in DOM for form submission) -->
+                                        <div style="display: none;">
+                                            <input type="hidden" name="items[${itemIndex}][chest]" value="${getFieldValue(itemData, 'chest')}">
+                                            <input type="hidden" name="items[${itemIndex}][waist]" value="${getFieldValue(itemData, 'waist')}">
+                                            <input type="hidden" name="items[${itemIndex}][shoulder_width]" value="${getFieldValue(itemData, 'shoulder_width')}">
+                                            <input type="hidden" name="items[${itemIndex}][sleeve_length]" value="${getFieldValue(itemData, 'sleeve_length')}">
+                                            <input type="hidden" name="items[${itemIndex}][shirt_length]" value="${getFieldValue(itemData, 'shirt_length')}">
+                                            <input type="hidden" name="items[${itemIndex}][jacket_length]" value="${getFieldValue(itemData, 'jacket_length')}">
+                                            <input type="hidden" name="items[${itemIndex}][neck]" value="${getFieldValue(itemData, 'neck')}">
+                                            <input type="hidden" name="items[${itemIndex}][armhole]" value="${getFieldValue(itemData, 'armhole')}">
+                                            <input type="hidden" name="items[${itemIndex}][bicep]" value="${getFieldValue(itemData, 'bicep')}">
+                                            <input type="hidden" name="items[${itemIndex}][wrist]" value="${getFieldValue(itemData, 'wrist')}">
+                                            <input type="hidden" name="items[${itemIndex}][hip]" value="${getFieldValue(itemData, 'hip')}">
+                                            <input type="hidden" name="items[${itemIndex}][inseam]" value="${getFieldValue(itemData, 'inseam')}">
+                                            <input type="hidden" name="items[${itemIndex}][outseam]" value="${getFieldValue(itemData, 'outseam')}">
+                                            <input type="hidden" name="items[${itemIndex}][thigh]" value="${getFieldValue(itemData, 'thigh')}">
+                                            <input type="hidden" name="items[${itemIndex}][knee]" value="${getFieldValue(itemData, 'knee')}">
+                                            <input type="hidden" name="items[${itemIndex}][ankle]" value="${getFieldValue(itemData, 'ankle')}">
+                                            <input type="hidden" name="items[${itemIndex}][pant_length]" value="${getFieldValue(itemData, 'pant_length')}">
+                                        </div>
+
                                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                             <div>
                                                 <label class="block text-sm font-semibold text-gray-700 mb-2">
@@ -586,7 +700,7 @@
                                                 </label>
                                                 <div class="relative">
                                                     <span class="absolute left-4 top-3.5 text-gray-500">৳</span>
-                                                    <input type="number" name="items[${itemIndex}][price]" step="0.01" min="0" value="${itemData ? itemData.price : '0'}" required
+                                                    <input type="number" name="items[${itemIndex}][price]" step="0.01" min="0" value="${itemData && itemData.price !== null && itemData.price !== undefined ? itemData.price : '0'}" required
                                                         class="item-price w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white"
                                                         onchange="calculateTotal()">
                                                 </div>
@@ -595,7 +709,7 @@
                                                 <label class="block text-sm font-semibold text-gray-700 mb-2">
                                                     <i class="fas fa-align-left text-indigo-600 mr-2"></i>Description
                                                 </label>
-                                                <input type="text" name="items[${itemIndex}][description]" value="${itemData ? (itemData.description || '') : ''}"
+                                                <input type="text" name="items[${itemIndex}][description]" value="${getFieldValue(itemData, 'description')}"
                                                     class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white"
                                                     placeholder="Item description...">
                                             </div>
@@ -610,43 +724,43 @@
                                             <!-- Shirt Measurements -->
                                             <div class="item-shirt-measurements-${itemIndex} grid grid-cols-1 md:grid-cols-3 gap-4" style="display: ${itemData && itemData.garment_type === 'shirt' ? 'grid' : 'none'};">
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Chest</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][chest]" step="0.01" min="0" value="${itemData ? (itemData.chest || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][chest]" step="0.01" min="0" value="${getFieldValue(itemData, 'chest')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'chest', this.value)" oninput="syncMeasurementField(${itemIndex}, 'chest', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Waist</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][waist]" step="0.01" min="0" value="${itemData ? (itemData.waist || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][waist]" step="0.01" min="0" value="${getFieldValue(itemData, 'waist')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'waist', this.value)" oninput="syncMeasurementField(${itemIndex}, 'waist', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Shoulder Width</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][shoulder_width]" step="0.01" min="0" value="${itemData ? (itemData.shoulder_width || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][shoulder_width]" step="0.01" min="0" value="${getFieldValue(itemData, 'shoulder_width')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'shoulder_width', this.value)" oninput="syncMeasurementField(${itemIndex}, 'shoulder_width', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Sleeve Length</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][sleeve_length]" step="0.01" min="0" value="${itemData ? (itemData.sleeve_length || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][sleeve_length]" step="0.01" min="0" value="${getFieldValue(itemData, 'sleeve_length')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'sleeve_length', this.value)" oninput="syncMeasurementField(${itemIndex}, 'sleeve_length', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Shirt Length</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][shirt_length]" step="0.01" min="0" value="${itemData ? (itemData.shirt_length || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][shirt_length]" step="0.01" min="0" value="${getFieldValue(itemData, 'shirt_length')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'shirt_length', this.value)" oninput="syncMeasurementField(${itemIndex}, 'shirt_length', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Neck</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][neck]" step="0.01" min="0" value="${itemData ? (itemData.neck || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][neck]" step="0.01" min="0" value="${getFieldValue(itemData, 'neck')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'neck', this.value)" oninput="syncMeasurementField(${itemIndex}, 'neck', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Armhole</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][armhole]" step="0.01" min="0" value="${itemData ? (itemData.armhole || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][armhole]" step="0.01" min="0" value="${getFieldValue(itemData, 'armhole')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'armhole', this.value)" oninput="syncMeasurementField(${itemIndex}, 'armhole', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Bicep</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][bicep]" step="0.01" min="0" value="${itemData ? (itemData.bicep || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][bicep]" step="0.01" min="0" value="${getFieldValue(itemData, 'bicep')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'bicep', this.value)" oninput="syncMeasurementField(${itemIndex}, 'bicep', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Wrist</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][wrist]" step="0.01" min="0" value="${itemData ? (itemData.wrist || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][wrist]" step="0.01" min="0" value="${getFieldValue(itemData, 'wrist')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'wrist', this.value)" oninput="syncMeasurementField(${itemIndex}, 'wrist', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                             </div>
 
                                             <!-- Pant Measurements -->
                                             <div class="item-pant-measurements-${itemIndex} grid grid-cols-1 md:grid-cols-3 gap-4" style="display: ${itemData && itemData.garment_type === 'pant' ? 'grid' : 'none'};">
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Waist</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][waist]" step="0.01" min="0" value="${itemData ? (itemData.waist || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][waist]" step="0.01" min="0" value="${getFieldValue(itemData, 'waist')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'waist', this.value)" oninput="syncMeasurementField(${itemIndex}, 'waist', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Hip</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][hip]" step="0.01" min="0" value="${itemData ? (itemData.hip || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][hip]" step="0.01" min="0" value="${getFieldValue(itemData, 'hip')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'hip', this.value)" oninput="syncMeasurementField(${itemIndex}, 'hip', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Inseam</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][inseam]" step="0.01" min="0" value="${itemData ? (itemData.inseam || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][inseam]" step="0.01" min="0" value="${getFieldValue(itemData, 'inseam')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'inseam', this.value)" oninput="syncMeasurementField(${itemIndex}, 'inseam', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Outseam</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][outseam]" step="0.01" min="0" value="${itemData ? (itemData.outseam || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][outseam]" step="0.01" min="0" value="${getFieldValue(itemData, 'outseam')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'outseam', this.value)" oninput="syncMeasurementField(${itemIndex}, 'outseam', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Thigh</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][thigh]" step="0.01" min="0" value="${itemData ? (itemData.thigh || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][thigh]" step="0.01" min="0" value="${getFieldValue(itemData, 'thigh')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'thigh', this.value)" oninput="syncMeasurementField(${itemIndex}, 'thigh', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Knee</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][knee]" step="0.01" min="0" value="${itemData ? (itemData.knee || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][knee]" step="0.01" min="0" value="${getFieldValue(itemData, 'knee')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'knee', this.value)" oninput="syncMeasurementField(${itemIndex}, 'knee', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Ankle</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][ankle]" step="0.01" min="0" value="${itemData ? (itemData.ankle || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][ankle]" step="0.01" min="0" value="${getFieldValue(itemData, 'ankle')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'ankle', this.value)" oninput="syncMeasurementField(${itemIndex}, 'ankle', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                 <div><label class="block text-sm font-medium text-gray-700 mb-1">Pant Length</label>
-                                                    <div class="relative"><input type="number" name="items[${itemIndex}][pant_length]" step="0.01" min="0" value="${itemData ? (itemData.pant_length || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                    <div class="relative"><input type="number" name="items[${itemIndex}][pant_length]" step="0.01" min="0" value="${getFieldValue(itemData, 'pant_length')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'pant_length', this.value)" oninput="syncMeasurementField(${itemIndex}, 'pant_length', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                             </div>
 
                                             <!-- Suit Measurements -->
@@ -655,34 +769,34 @@
                                                     <h6 class="text-sm font-semibold text-gray-700 mb-2">Jacket</h6>
                                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Chest</label>
-                                                            <div class="relative"><input type="number" name="items[${itemIndex}][chest]" step="0.01" min="0" value="${itemData ? (itemData.chest || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][chest]" step="0.01" min="0" value="${getFieldValue(itemData, 'chest')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'chest', this.value)" oninput="syncMeasurementField(${itemIndex}, 'chest', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Waist</label>
-                                                            <div class="relative"><input type="number" name="items[${itemIndex}][waist]" step="0.01" min="0" value="${itemData ? (itemData.waist || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][waist]" step="0.01" min="0" value="${getFieldValue(itemData, 'waist')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'waist', this.value)" oninput="syncMeasurementField(${itemIndex}, 'waist', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Shoulder Width</label>
-                                                            <div class="relative"><input type="number" name="items[${itemIndex}][shoulder_width]" step="0.01" min="0" value="${itemData ? (itemData.shoulder_width || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][shoulder_width]" step="0.01" min="0" value="${getFieldValue(itemData, 'shoulder_width')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'shoulder_width', this.value)" oninput="syncMeasurementField(${itemIndex}, 'shoulder_width', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Sleeve Length</label>
-                                                            <div class="relative"><input type="number" name="items[${itemIndex}][sleeve_length]" step="0.01" min="0" value="${itemData ? (itemData.sleeve_length || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][sleeve_length]" step="0.01" min="0" value="${getFieldValue(itemData, 'sleeve_length')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'sleeve_length', this.value)" oninput="syncMeasurementField(${itemIndex}, 'sleeve_length', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Jacket Length</label>
-                                                            <div class="relative"><input type="number" name="items[${itemIndex}][jacket_length]" step="0.01" min="0" value="${itemData ? (itemData.jacket_length || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][jacket_length]" step="0.01" min="0" value="${getFieldValue(itemData, 'jacket_length')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'jacket_length', this.value)" oninput="syncMeasurementField(${itemIndex}, 'jacket_length', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                     </div>
                                                 </div>
                                                 <div>
                                                     <h6 class="text-sm font-semibold text-gray-700 mb-2">Pant</h6>
                                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Hip</label>
-                                                            <div class="relative"><input type="number" name="items[${itemIndex}][hip]" step="0.01" min="0" value="${itemData ? (itemData.hip || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][hip]" step="0.01" min="0" value="${getFieldValue(itemData, 'hip')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'hip', this.value)" oninput="syncMeasurementField(${itemIndex}, 'hip', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Inseam</label>
-                                                            <div class="relative"><input type="number" name="items[${itemIndex}][inseam]" step="0.01" min="0" value="${itemData ? (itemData.inseam || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][inseam]" step="0.01" min="0" value="${getFieldValue(itemData, 'inseam')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'inseam', this.value)" oninput="syncMeasurementField(${itemIndex}, 'inseam', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Outseam</label>
-                                                            <div class="relative"><input type="number" name="items[${itemIndex}][outseam]" step="0.01" min="0" value="${itemData ? (itemData.outseam || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][outseam]" step="0.01" min="0" value="${getFieldValue(itemData, 'outseam')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'outseam', this.value)" oninput="syncMeasurementField(${itemIndex}, 'outseam', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Thigh</label>
-                                                            <div class="relative"><input type="number" name="items[${itemIndex}][thigh]" step="0.01" min="0" value="${itemData ? (itemData.thigh || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][thigh]" step="0.01" min="0" value="${getFieldValue(itemData, 'thigh')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'thigh', this.value)" oninput="syncMeasurementField(${itemIndex}, 'thigh', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Knee</label>
-                                                            <div class="relative"><input type="number" name="items[${itemIndex}][knee]" step="0.01" min="0" value="${itemData ? (itemData.knee || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][knee]" step="0.01" min="0" value="${getFieldValue(itemData, 'knee')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'knee', this.value)" oninput="syncMeasurementField(${itemIndex}, 'knee', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Ankle</label>
-                                                            <div class="relative"><input type="number" name="items[${itemIndex}][ankle]" step="0.01" min="0" value="${itemData ? (itemData.ankle || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][ankle]" step="0.01" min="0" value="${getFieldValue(itemData, 'ankle')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'ankle', this.value)" oninput="syncMeasurementField(${itemIndex}, 'ankle', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Pant Length</label>
-                                                            <div class="relative"><input type="number" name="items[${itemIndex}][pant_length]" step="0.01" min="0" value="${itemData ? (itemData.pant_length || '') : ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
+                                                            <div class="relative"><input type="number" name="items[${itemIndex}][pant_length]" step="0.01" min="0" value="${getFieldValue(itemData, 'pant_length')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="syncMeasurementField(${itemIndex}, 'pant_length', this.value)" oninput="syncMeasurementField(${itemIndex}, 'pant_length', this.value)"><span class="absolute right-3 top-2.5 text-xs text-gray-500">in</span></div></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -694,15 +808,47 @@
                                             </label>
                                             <textarea name="items[${itemIndex}][notes]" rows="2"
                                                 class="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white"
-                                                placeholder="Additional notes for this item...">${itemData ? (itemData.notes || '') : ''}</textarea>
+                                                placeholder="Additional notes for this item...">${getFieldValue(itemData, 'notes')}</textarea>
                                         </div>
                                     </div>
                                 `;
                                 
                                 container.insertAdjacentHTML('beforeend', itemHtml);
-                                if (itemData && itemData.garment_type) {
-                                    updateItemMeasurements(itemIndex, itemData.garment_type);
-                                }
+                                
+                                // Use setTimeout to ensure DOM is ready before updating measurements
+                                setTimeout(() => {
+                                    if (itemData && itemData.garment_type) {
+                                        console.log(`Calling updateItemMeasurements for item ${itemIndex} with garment_type: ${itemData.garment_type}`);
+                                        updateItemMeasurements(itemIndex, itemData.garment_type);
+                                        
+                                        // Debug: Check if measurements are visible after update
+                                        setTimeout(() => {
+                                            const itemContainer = document.querySelector(`.order-item[data-item-index="${itemIndex}"]`);
+                                            if (itemContainer) {
+                                                const measurementsDiv = itemContainer.querySelector(`.item-measurements-${itemIndex}`);
+                                                const shirtDiv = itemContainer.querySelector(`.item-shirt-measurements-${itemIndex}`);
+                                                console.log(`After updateItemMeasurements for item ${itemIndex}:`, {
+                                                    measurementsDivVisible: measurementsDiv ? measurementsDiv.style.display : 'not found',
+                                                    shirtDivVisible: shirtDiv ? shirtDiv.style.display : 'not found',
+                                                    shirtDivExists: !!shirtDiv
+                                                });
+                                                
+                                                // Check if shirt measurement inputs have values
+                                                if (shirtDiv && itemData.garment_type === 'shirt') {
+                                                    const chestInput = shirtDiv.querySelector('input[name*="[chest]"]');
+                                                    const shirtLengthInput = shirtDiv.querySelector('input[name*="[shirt_length]"]');
+                                                    const neckInput = shirtDiv.querySelector('input[name*="[neck]"]');
+                                                    console.log(`Shirt input values for item ${itemIndex}:`, {
+                                                        chest: chestInput ? chestInput.value : 'input not found',
+                                                        shirt_length: shirtLengthInput ? shirtLengthInput.value : 'input not found',
+                                                        neck: neckInput ? neckInput.value : 'input not found'
+                                                    });
+                                                }
+                                            }
+                                        }, 50);
+                                    }
+                                }, 10);
+                                
                                 calculateTotal();
                             }
 
@@ -724,10 +870,24 @@
                             }
 
                             function updateItemMeasurements(itemIndex, garmentType) {
-                                const measurementsDiv = document.querySelector(`.item-measurements-${itemIndex}`);
-                                const shirtDiv = document.querySelector(`.item-shirt-measurements-${itemIndex}`);
-                                const pantDiv = document.querySelector(`.item-pant-measurements-${itemIndex}`);
-                                const suitDiv = document.querySelector(`.item-suit-measurements-${itemIndex}`);
+                                // Find the item container first
+                                const itemContainer = document.querySelector(`.order-item[data-item-index="${itemIndex}"]`);
+                                if (!itemContainer) {
+                                    console.warn(`Item container not found for index ${itemIndex}`);
+                                    return;
+                                }
+                                
+                                const measurementsDiv = itemContainer.querySelector(`.item-measurements-${itemIndex}`);
+                                const shirtDiv = itemContainer.querySelector(`.item-shirt-measurements-${itemIndex}`);
+                                const pantDiv = itemContainer.querySelector(`.item-pant-measurements-${itemIndex}`);
+                                const suitDiv = itemContainer.querySelector(`.item-suit-measurements-${itemIndex}`);
+
+                                console.log(`Updating measurements for item ${itemIndex}, garment type: ${garmentType}`, {
+                                    measurementsDiv: !!measurementsDiv,
+                                    shirtDiv: !!shirtDiv,
+                                    pantDiv: !!pantDiv,
+                                    suitDiv: !!suitDiv
+                                });
 
                                 if (garmentType && measurementsDiv) {
                                     measurementsDiv.style.display = 'block';
@@ -737,13 +897,21 @@
 
                                     if (garmentType === 'shirt' && shirtDiv) {
                                         shirtDiv.style.display = 'grid';
+                                        console.log(`Showing shirt measurements for item ${itemIndex}`);
                                     } else if (garmentType === 'pant' && pantDiv) {
                                         pantDiv.style.display = 'grid';
+                                        console.log(`Showing pant measurements for item ${itemIndex}`);
                                     } else if (garmentType === 'suit' && suitDiv) {
                                         suitDiv.style.display = 'block';
+                                        console.log(`Showing suit measurements for item ${itemIndex}`);
                                     }
-                                } else if (measurementsDiv) {
-                                    measurementsDiv.style.display = 'none';
+                                } else {
+                                    if (!measurementsDiv) {
+                                        console.warn(`Measurements div not found for item ${itemIndex}`);
+                                    }
+                                    if (measurementsDiv) {
+                                        measurementsDiv.style.display = 'none';
+                                    }
                                 }
                             }
 
@@ -756,8 +924,268 @@
                                 document.getElementById('total_amount_display').value = total.toFixed(2);
                             }
 
-                            function validateForm() {
+                            // Sync measurement field value to hidden input
+                            function syncMeasurementField(itemIndex, field, value) {
+                                // Find the item container - try multiple methods
+                                let itemContainer = document.querySelector(`.order-item[data-item-index="${itemIndex}"]`);
+                                
+                                if (!itemContainer) {
+                                    // Try to find by garment type selector
+                                    const garmentSelect = document.querySelector(`select[name="items[${itemIndex}][garment_type]"]`);
+                                    if (garmentSelect) {
+                                        itemContainer = garmentSelect.closest('.order-item');
+                                    }
+                                }
+                                
+                                if (!itemContainer) {
+                                    // Try to find by any input with this item index
+                                    const anyInput = document.querySelector(`input[name="items[${itemIndex}][garment_type]"]`);
+                                    if (anyInput) {
+                                        itemContainer = anyInput.closest('.order-item');
+                                    }
+                                }
+                                
+                                if (itemContainer) {
+                                    // Find the hidden input in the hidden inputs section (the one from template)
+                                    const hiddenInputsSection = itemContainer.querySelector('div[style*="display: none"]');
+                                    let targetHiddenInput = null;
+                                    
+                                    if (hiddenInputsSection) {
+                                        targetHiddenInput = hiddenInputsSection.querySelector(`input[type="hidden"][name="items[${itemIndex}][${field}]"]`);
+                                    }
+                                    
+                                    // If not found in hidden section, find any hidden input with this name
+                                    if (!targetHiddenInput) {
+                                        const allHiddenInputs = itemContainer.querySelectorAll(`input[type="hidden"][name="items[${itemIndex}][${field}]"]`);
+                                        if (allHiddenInputs.length > 0) {
+                                            targetHiddenInput = allHiddenInputs[0];
+                                        }
+                                    }
+                                    
+                                    if (targetHiddenInput) {
+                                        // Update the hidden input
+                                        targetHiddenInput.value = value || '';
+                                        console.log(`Synced ${field} for item ${itemIndex}: ${value || '(empty)'}`);
+                                        
+                                        // Remove any duplicate hidden inputs (except the one we just updated)
+                                        const allHiddenInputs = itemContainer.querySelectorAll(`input[type="hidden"][name="items[${itemIndex}][${field}]"]`);
+                                        for (let i = 0; i < allHiddenInputs.length; i++) {
+                                            if (allHiddenInputs[i] !== targetHiddenInput) {
+                                                allHiddenInputs[i].remove();
+                                            }
+                                        }
+                                    } else {
+                                        // No hidden input exists, create one in the hidden section
+                                        if (!hiddenInputsSection) {
+                                            // Create hidden section if it doesn't exist
+                                            const newHiddenSection = document.createElement('div');
+                                            newHiddenSection.style.display = 'none';
+                                            itemContainer.insertBefore(newHiddenSection, itemContainer.querySelector('.grid'));
+                                        }
+                                        
+                                        const hiddenField = document.createElement('input');
+                                        hiddenField.type = 'hidden';
+                                        hiddenField.name = `items[${itemIndex}][${field}]`;
+                                        hiddenField.value = value || '';
+                                        (hiddenInputsSection || itemContainer).appendChild(hiddenField);
+                                        console.log(`Created hidden input for ${field} in item ${itemIndex}: ${value || '(empty)'}`);
+                                    }
+                                } else {
+                                    console.warn(`Could not find item container for index ${itemIndex}`);
+                                }
+                            }
+
+                            // Ensure all measurement fields are included in form submission
+                            function ensureAllMeasurementFields() {
                                 const items = document.querySelectorAll('.order-item');
+                                const measurementFields = [
+                                    'chest', 'waist', 'shoulder_width', 'sleeve_length', 'shirt_length', 'jacket_length',
+                                    'neck', 'armhole', 'bicep', 'wrist', 'hip', 'inseam', 'outseam',
+                                    'thigh', 'knee', 'ankle', 'pant_length'
+                                ];
+                                
+                                items.forEach((item) => {
+                                    // Extract the actual item index from the first form field in this item
+                                    const firstInput = item.querySelector('input[name^="items["]');
+                                    if (!firstInput) return;
+                                    
+                                    // Extract index from name like "items[0][garment_type]" -> 0
+                                    const nameMatch = firstInput.name.match(/items\[(\d+)\]/);
+                                    if (!nameMatch) return;
+                                    
+                                    const itemIndex = parseInt(nameMatch[1]);
+                                    
+                                    measurementFields.forEach(field => {
+                                        const fieldName = `items[${itemIndex}][${field}]`;
+                                        // Check if field exists
+                                        let fieldInput = item.querySelector(`input[name="${fieldName}"]`);
+                                        
+                                        if (!fieldInput) {
+                                            // Create hidden input if field doesn't exist
+                                            const hiddenInput = document.createElement('input');
+                                            hiddenInput.type = 'hidden';
+                                            hiddenInput.name = fieldName;
+                                            hiddenInput.value = '';
+                                            item.appendChild(hiddenInput);
+                                        } else if (fieldInput.value === '' && fieldInput.type !== 'hidden') {
+                                            // Ensure empty values are explicitly set
+                                            fieldInput.value = '';
+                                        }
+                                    });
+                                });
+                            }
+
+                            function validateForm() {
+                                // CRITICAL: Do final sync BEFORE ensureAllMeasurementFields
+                                // This ensures we capture values from visible inputs before they're removed
+                                console.log('=== FINAL SYNC BEFORE SUBMISSION ===');
+                                const items = document.querySelectorAll('.order-item');
+                                const measurementFields = ['chest', 'waist', 'shoulder_width', 'sleeve_length', 'shirt_length', 'jacket_length', 'neck', 'armhole', 'bicep', 'wrist', 'hip', 'inseam', 'outseam', 'thigh', 'knee', 'ankle', 'pant_length'];
+                                
+                                items.forEach((item) => {
+                                    const firstInput = item.querySelector('input[name^="items["]');
+                                    if (firstInput) {
+                                        const nameMatch = firstInput.name.match(/items\[(\d+)\]/);
+                                        if (nameMatch) {
+                                            const itemIndex = parseInt(nameMatch[1]);
+                                            
+                                            // Get garment type to determine which measurement section is visible
+                                            const garmentTypeSelect = item.querySelector(`select[name="items[${itemIndex}][garment_type]"]`);
+                                            const garmentType = garmentTypeSelect ? garmentTypeSelect.value : '';
+                                            
+                                            // Final sync: Check all fields one more time
+                                            measurementFields.forEach(field => {
+                                                const fieldName = `items[${itemIndex}][${field}]`;
+                                                
+                                                // Find ALL inputs with this name (both visible and hidden, regardless of display state)
+                                                const allInputs = item.querySelectorAll(`input[name="${fieldName}"]`);
+                                                let value = '';
+                                                let correctVisibleInput = null;
+                                                
+                                                // Step 1: Find the correct visible input based on garment type
+                                                // For fields that appear in multiple sections (like waist), we need the one in the visible section
+                                                allInputs.forEach(input => {
+                                                    if (input.type === 'number') {
+                                                        const inputValue = input.value || '';
+                                                        
+                                                        // Determine which section this input belongs to
+                                                        const isInShirtSection = input.closest('.item-shirt-measurements-' + itemIndex) !== null;
+                                                        const isInPantSection = input.closest('.item-pant-measurements-' + itemIndex) !== null;
+                                                        const isInSuitSection = input.closest('.item-suit-measurements-' + itemIndex) !== null;
+                                                        
+                                                        // Check if this input is in the correct visible section based on garment type
+                                                        let isCorrectSection = false;
+                                                        if (garmentType === 'shirt' && isInShirtSection) {
+                                                            isCorrectSection = true;
+                                                        } else if (garmentType === 'pant' && isInPantSection) {
+                                                            isCorrectSection = true;
+                                                        } else if (garmentType === 'suit' && isInSuitSection) {
+                                                            isCorrectSection = true;
+                                                        }
+                                                        
+                                                        // Also check if the input is actually visible in the DOM
+                                                        const isActuallyVisible = input.offsetParent !== null;
+                                                        
+                                                        // Use this input if it's in the correct section AND visible
+                                                        if (isCorrectSection && isActuallyVisible) {
+                                                            correctVisibleInput = input;
+                                                            value = inputValue;
+                                                            console.log(`Final sync: Found value in correct visible input items[${itemIndex}][${field}] = "${value}" (garment: ${garmentType})`);
+                                                        }
+                                                    }
+                                                });
+                                                
+                                                // Step 2: If no correct visible input found, try to find any visible input with a value
+                                                if (!correctVisibleInput || value === '') {
+                                                    allInputs.forEach(input => {
+                                                        if (input.type === 'number' && input.offsetParent !== null) {
+                                                            const inputValue = input.value || '';
+                                                            if (inputValue !== '' && value === '') {
+                                                                correctVisibleInput = input;
+                                                                value = inputValue;
+                                                                console.log(`Final sync: Found value in any visible input items[${itemIndex}][${field}] = "${value}"`);
+                                                            }
+                                                        }
+                                                    });
+                                                }
+                                                
+                                                // Second priority: If no visible number input value found, check existing hidden input
+                                                if (value === '' && correctVisibleInput === null) {
+                                                    allInputs.forEach(input => {
+                                                        if (input.type === 'hidden' && input.value && input.value !== '') {
+                                                            value = input.value;
+                                                            console.log(`Final sync: Using existing hidden value items[${itemIndex}][${field}] = "${value}"`);
+                                                        }
+                                                    });
+                                                }
+                                                
+                                                // Find the hidden input in the hidden inputs section (the one from template)
+                                                const hiddenInputsSection = item.querySelector('div[style*="display: none"]');
+                                                let targetHiddenInput = null;
+                                                
+                                                if (hiddenInputsSection) {
+                                                    targetHiddenInput = hiddenInputsSection.querySelector(`input[type="hidden"][name="${fieldName}"]`);
+                                                }
+                                                
+                                                // If not found in hidden section, find any hidden input with this name
+                                                if (!targetHiddenInput) {
+                                                    const allHiddenInputs = item.querySelectorAll(`input[type="hidden"][name="${fieldName}"]`);
+                                                    if (allHiddenInputs.length > 0) {
+                                                        targetHiddenInput = allHiddenInputs[0];
+                                                    }
+                                                }
+                                                
+                                                if (targetHiddenInput) {
+                                                    // Update the hidden input
+                                                    targetHiddenInput.value = value;
+                                                    console.log(`Final sync: Updated hidden input items[${itemIndex}][${field}] = "${value}"`);
+                                                    
+                                                    // Remove any duplicate hidden inputs (except the one we just updated)
+                                                    const allHiddenInputs = item.querySelectorAll(`input[type="hidden"][name="${fieldName}"]`);
+                                                    for (let i = 0; i < allHiddenInputs.length; i++) {
+                                                        if (allHiddenInputs[i] !== targetHiddenInput) {
+                                                            allHiddenInputs[i].remove();
+                                                        }
+                                                    }
+                                                } else {
+                                                    // No hidden input exists, create one in the hidden section
+                                                    if (!hiddenInputsSection) {
+                                                        // Create hidden section if it doesn't exist
+                                                        const newHiddenSection = document.createElement('div');
+                                                        newHiddenSection.style.display = 'none';
+                                                        const firstGrid = item.querySelector('.grid');
+                                                        if (firstGrid) {
+                                                            item.insertBefore(newHiddenSection, firstGrid);
+                                                        } else {
+                                                            item.appendChild(newHiddenSection);
+                                                        }
+                                                    }
+                                                    
+                                                    const hiddenInput = document.createElement('input');
+                                                    hiddenInput.type = 'hidden';
+                                                    hiddenInput.name = fieldName;
+                                                    hiddenInput.value = value;
+                                                    (hiddenInputsSection || item).appendChild(hiddenInput);
+                                                    console.log(`Final sync: Created hidden input items[${itemIndex}][${field}] = "${value}"`);
+                                                }
+                                                
+                                                // Step 3: Remove ALL number inputs for this field to avoid duplicate submission
+                                                // The hidden input will be submitted instead
+                                                allInputs.forEach(input => {
+                                                    if (input.type === 'number') {
+                                                        input.remove();
+                                                    }
+                                                });
+                                            });
+                                        }
+                                    }
+                                });
+                                
+                                // Now run ensureAllMeasurementFields as a backup
+                                console.log('=== RUNNING ensureAllMeasurementFields AS BACKUP ===');
+                                ensureAllMeasurementFields();
+                                
+                                // Re-check items after sync (reuse the items variable from above)
                                 if (items.length === 0) {
                                     alert('Please add at least one item to the order.');
                                     return false;
@@ -781,15 +1209,41 @@
                             }
 
                             // Load existing items on page load
-                            document.addEventListener('DOMContentLoaded', function() {
+                            function loadExistingItems() {
+                                const container = document.getElementById('order-items-container');
+                                if (!container) {
+                                    console.error('Order items container not found!');
+                                    return;
+                                }
+                                
+                                console.log('Loading existing items:', existingItems);
+                                console.log('Existing items count:', existingItems ? existingItems.length : 0);
+                                
                                 if (existingItems && existingItems.length > 0) {
-                                    existingItems.forEach(item => {
+                                    existingItems.forEach((item, index) => {
+                                        console.log(`Loading item ${index}:`, item);
                                         addOrderItem(item);
                                     });
                                 } else {
-                                    addOrderItem();
+                                    console.log('No existing items found');
                                 }
-                            });
+                            }
+
+                            // Execute when DOM is ready
+                            function initPage() {
+                                // Wait a tiny bit to ensure all DOM is ready
+                                setTimeout(function() {
+                                    loadExistingItems();
+                                }, 100);
+                            }
+
+                            // Execute immediately if DOM is ready, otherwise wait for DOMContentLoaded
+                            if (document.readyState === 'loading') {
+                                document.addEventListener('DOMContentLoaded', initPage);
+                            } else {
+                                // DOM is already loaded
+                                initPage();
+                            }
                         </script>
 
                         <!-- Form Actions -->

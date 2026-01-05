@@ -23,13 +23,10 @@ class Order extends Model
         'status',
         'total_amount',
         'description',
-        'garment_type',
+        'garment_type', // Kept for backward compatibility and filtering (represents primary garment type)
         'delivery_date', 
         'notes',
-        // Measurements
-        'chest', 'waist', 'shoulder_width', 'sleeve_length', 'shirt_length', 'jacket_length',
-        'neck', 'armhole', 'bicep', 'wrist', 'hip', 'inseam', 'outseam',
-        'thigh', 'knee', 'ankle', 'pant_length',
+        // Note: Measurements are stored in order_items table, not here
     ];
 
     /**
@@ -43,24 +40,7 @@ class Order extends Model
             'order_date' => 'date',
             'delivery_date' => 'date',
             'total_amount' => 'decimal:2',
-            // Measurements
-            'chest' => 'decimal:2',
-            'waist' => 'decimal:2',
-            'shoulder_width' => 'decimal:2',
-            'sleeve_length' => 'decimal:2',
-            'shirt_length' => 'decimal:2',
-            'jacket_length' => 'decimal:2',
-            'neck' => 'decimal:2',
-            'armhole' => 'decimal:2',
-            'bicep' => 'decimal:2',
-            'wrist' => 'decimal:2',
-            'hip' => 'decimal:2',
-            'inseam' => 'decimal:2',
-            'outseam' => 'decimal:2',
-            'thigh' => 'decimal:2',
-            'knee' => 'decimal:2',
-            'ankle' => 'decimal:2',
-            'pant_length' => 'decimal:2',
+            // Note: Measurement fields removed - they belong in order_items table
         ];
     }
 

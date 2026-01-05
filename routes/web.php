@@ -10,6 +10,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Redirect login route to admin.login (for auth middleware compatibility)
+Route::get('/login', function () {
+    return redirect()->route('admin.login');
+})->name('login');
+
 // Admin Routes
 Route::prefix('admin')->name('admin.')->group(function () {
     // Login routes (accessible without authentication)

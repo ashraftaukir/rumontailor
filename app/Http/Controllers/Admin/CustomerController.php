@@ -63,7 +63,7 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
-        $customer->load('orders');
+        $customer->load(['orders.items', 'measurements']);
         return view('admin.customers.show', compact('customer'));
     }
 
@@ -104,5 +104,25 @@ class CustomerController extends Controller
         return redirect()
             ->route('admin.customers.index')
             ->with('success', 'Customer deleted successfully.');
+    }
+
+    /**
+     * Get customer measurements (for AJAX requests)
+     */
+    public function getMeasurements(Customer $customer, Request $request)
+    {
+        $garmentType = $request->get('garment_type');
+        
+        if ($garmentType) {
+            $measurement = $customer->getMeasurementByType($garmentType);
+            return response()->json([
+                'measurement' => $measurement,
+            ]);
+        }
+        
+        $measurements = $customer->measurements;
+        return response()->json([
+            'measurements' => $measurements,
+        ]);
     }
 }

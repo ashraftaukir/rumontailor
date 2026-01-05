@@ -124,6 +124,37 @@ Authorization: Bearer {your_token_here}
 - **DELETE** `/api/customers/{id}`
 - **Headers:** Authorization: Bearer {token}
 
+#### Get Customer Measurements
+- **GET** `/api/customers/{id}/measurements`
+- **Query Parameters:**
+  - `garment_type` (optional): Filter by garment type (shirt, pant, suit). If not provided, returns all measurements.
+- **Headers:** Authorization: Bearer {token}
+- **Response:**
+  ```json
+  {
+    "measurements": [
+      {
+        "id": 1,
+        "customer_id": 1,
+        "garment_type": "shirt",
+        "chest": 38.5,
+        "waist": 32.0,
+        "shoulder_width": 17.5,
+        "sleeve_length": 24.5,
+        "shirt_length": 28.5,
+        "neck": 15.0,
+        "armhole": 18.5,
+        "bicep": 12.5,
+        "wrist": 7.5,
+        "notes": null,
+        "created_at": "2026-01-05T10:00:00.000000Z",
+        "updated_at": "2026-01-05T10:00:00.000000Z"
+      }
+    ]
+  }
+  ```
+- **Note:** When creating or updating an order, measurements are automatically saved to the customer's measurement profile for future use.
+
 ---
 
 ### Orders
@@ -150,6 +181,7 @@ Authorization: Bearer {your_token_here}
 #### Create Order
 - **POST** `/api/orders`
 - **Headers:** Authorization: Bearer {token}
+- **Note:** When an order is created, measurements are automatically saved to the customer's measurement profile for future use. You can retrieve these measurements using `/api/customers/{id}/measurements`.
 - **Body:**
   ```json
   {

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Customer;
+use App\Models\CustomerMeasurement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -183,6 +184,9 @@ class OrderController extends Controller
                 ]);
                 
                 \Log::info("Order Store - Created order item ID {$orderItem->id}:", ['item' => $orderItem->toArray()]);
+                
+                // Save measurements to customer_measurements for future use
+                $this->saveCustomerMeasurements($validated['customer_id'], $itemData['garment_type'], $itemMeasurements);
             }
 
             return $order;
@@ -381,6 +385,37 @@ class OrderController extends Controller
         return redirect()
             ->route('admin.orders.index')
             ->with('success', 'Order deleted successfully.');
+    }
+
+    /**
+     * Save customer measurements for future use
+     */
+    private function saveCustomerMeasurements(int $customerId, string $garmentType, array $measurements): void
+    {
+        // Only save if there are actual measurement values
+        $hasMeasurements = false;
+        foreach ($measurements as $value) {
+            if ($value !== null && $value !== '') {
+                $hasMeasurements = true;
+                break;
+            }
+        }
+
+        if (!$hasMeasurements) {
+            return;
+        }
+
+        // Update or create customer measurement
+        CustomerMeasurement::updateOrCreate(
+            [
+                'customer_id' => $customerId,
+                'garment_type' => $garmentType,
+            ],
+            array_merge($measurements, [
+                'customer_id' => $customerId,
+                'garment_type' => $garmentType,
+            ])
+        );
     }
 
     /**

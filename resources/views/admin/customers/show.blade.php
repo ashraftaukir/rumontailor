@@ -222,6 +222,224 @@
                         </div>
                     @endif
                 </div>
+
+                <!-- Customer Measurements Card -->
+                <div class="glass-effect rounded-2xl shadow-2xl p-8 mt-6 animate-fadeInUp" style="animation-delay: 0.6s;">
+                    <h3 class="text-2xl font-black text-gray-900 mb-6 flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                            <i class="fas fa-ruler-combined text-white"></i>
+                        </div>
+                        Customer Measurements
+                    </h3>
+                    @if($customer->measurements->count() > 0)
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            @php
+                                $shirtMeasurement = $customer->measurements->where('garment_type', 'shirt')->first();
+                                $pantMeasurement = $customer->measurements->where('garment_type', 'pant')->first();
+                                $suitMeasurement = $customer->measurements->where('garment_type', 'suit')->first();
+                            @endphp
+
+                            <!-- Shirt Measurements -->
+                            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200 shadow-lg">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h4 class="text-lg font-black text-indigo-700 flex items-center">
+                                        <i class="fas fa-tshirt mr-2 text-indigo-600"></i>Shirt
+                                    </h4>
+                                    @if($shirtMeasurement)
+                                        <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
+                                            <i class="fas fa-check-circle mr-1"></i>Saved
+                                        </span>
+                                    @endif
+                                </div>
+                                @if($shirtMeasurement)
+                                    <div class="space-y-3">
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Chest</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $shirtMeasurement->chest ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Waist</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $shirtMeasurement->waist ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Shoulder</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $shirtMeasurement->shoulder_width ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Sleeve</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $shirtMeasurement->sleeve_length ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Length</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $shirtMeasurement->shirt_length ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Neck</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $shirtMeasurement->neck ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Armhole</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $shirtMeasurement->armhole ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Bicep</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $shirtMeasurement->bicep ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Wrist</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $shirtMeasurement->wrist ?? 'N/A' }}"</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="text-center py-8">
+                                        <i class="fas fa-ruler text-gray-300 text-3xl mb-2"></i>
+                                        <p class="text-sm text-gray-500 font-medium">No measurements saved</p>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <!-- Pant Measurements -->
+                            <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200 shadow-lg">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h4 class="text-lg font-black text-purple-700 flex items-center">
+                                        <i class="fas fa-vest mr-2 text-purple-600"></i>Pant
+                                    </h4>
+                                    @if($pantMeasurement)
+                                        <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
+                                            <i class="fas fa-check-circle mr-1"></i>Saved
+                                        </span>
+                                    @endif
+                                </div>
+                                @if($pantMeasurement)
+                                    <div class="space-y-3">
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Waist</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $pantMeasurement->waist ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Hip</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $pantMeasurement->hip ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Inseam</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $pantMeasurement->inseam ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Outseam</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $pantMeasurement->outseam ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Thigh</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $pantMeasurement->thigh ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Knee</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $pantMeasurement->knee ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Ankle</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $pantMeasurement->ankle ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Length</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $pantMeasurement->pant_length ?? 'N/A' }}"</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="text-center py-8">
+                                        <i class="fas fa-ruler text-gray-300 text-3xl mb-2"></i>
+                                        <p class="text-sm text-gray-500 font-medium">No measurements saved</p>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <!-- Suit Measurements -->
+                            <div class="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-6 border-2 border-emerald-200 shadow-lg">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h4 class="text-lg font-black text-emerald-700 flex items-center">
+                                        <i class="fas fa-vest mr-2 text-emerald-600"></i>Suit
+                                    </h4>
+                                    @if($suitMeasurement)
+                                        <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
+                                            <i class="fas fa-check-circle mr-1"></i>Saved
+                                        </span>
+                                    @endif
+                                </div>
+                                @if($suitMeasurement)
+                                    <div class="space-y-3">
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Chest</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $suitMeasurement->chest ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Waist</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $suitMeasurement->waist ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Shoulder</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $suitMeasurement->shoulder_width ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Sleeve</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $suitMeasurement->sleeve_length ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Jacket Length</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $suitMeasurement->jacket_length ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Hip</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $suitMeasurement->hip ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Inseam</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $suitMeasurement->inseam ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Outseam</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $suitMeasurement->outseam ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Thigh</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $suitMeasurement->thigh ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Knee</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $suitMeasurement->knee ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Ankle</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $suitMeasurement->ankle ?? 'N/A' }}"</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-600">Pant Length</p>
+                                                <p class="text-sm font-black text-gray-900">{{ $suitMeasurement->pant_length ?? 'N/A' }}"</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="text-center py-8">
+                                        <i class="fas fa-ruler text-gray-300 text-3xl mb-2"></i>
+                                        <p class="text-sm text-gray-500 font-medium">No measurements saved</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @else
+                        <div class="text-center py-12">
+                            <div class="relative w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                                <i class="fas fa-ruler-combined text-gray-400 text-4xl"></i>
+                            </div>
+                            <p class="text-lg text-gray-600 font-medium">No measurements saved for this customer yet.</p>
+                            <p class="text-sm text-gray-500 mt-2">Measurements will be saved automatically when orders are created.</p>
+                        </div>
+                    @endif
+                </div>
             </div>
         </main>
     </div>

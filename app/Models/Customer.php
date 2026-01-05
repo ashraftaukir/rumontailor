@@ -29,4 +29,20 @@ class Customer extends Model
     {
         return $this->hasMany(Order::class);
     }
+
+    /**
+     * Get the measurements for the customer.
+     */
+    public function measurements(): HasMany
+    {
+        return $this->hasMany(CustomerMeasurement::class);
+    }
+
+    /**
+     * Get measurement for a specific garment type.
+     */
+    public function getMeasurementByType(string $garmentType): ?CustomerMeasurement
+    {
+        return $this->measurements()->where('garment_type', $garmentType)->first();
+    }
 }

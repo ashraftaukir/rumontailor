@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\CustomerMeasurement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -155,6 +156,9 @@ class OrderController extends Controller
                     'notes' => isset($itemData['notes']) && trim($itemData['notes']) !== '' ? trim($itemData['notes']) : null,
                     ...$itemMeasurements
                 ]);
+                
+                // Save measurements to customer_measurements for future use
+                $this->saveCustomerMeasurements($validated['customer_id'], $itemData['garment_type'], $itemMeasurements);
             }
 
             return $order->load(['customer', 'items']);
@@ -272,6 +276,9 @@ class OrderController extends Controller
                 } else {
                     $order->items()->create($itemDataToSave);
                 }
+                
+                // Save measurements to customer_measurements for future use
+                $this->saveCustomerMeasurements($validated['customer_id'], $itemData['garment_type'], $itemMeasurements);
             }
         });
 
@@ -310,6 +317,37 @@ class OrderController extends Controller
         return response()->json([
             'message' => 'Order deleted successfully',
         ]);
+    }
+
+    /**
+     * Save customer measurements for future use
+     */
+    private function saveCustomerMeasurements(int $customerId, string $garmentType, array $measurements): void
+    {
+        // Only save if there are actual measurement values
+        $hasMeasurements = false;
+        foreach ($measurements as $value) {
+            if ($value !== null && $value !== '') {
+                $hasMeasurements = true;
+                break;
+            }
+        }
+
+        if (!$hasMeasurements) {
+            return;
+        }
+
+        // Update or create customer measurement
+        CustomerMeasurement::updateOrCreate(
+            [
+                'customer_id' => $customerId,
+                'garment_type' => $garmentType,
+            ],
+            array_merge($measurements, [
+                'customer_id' => $customerId,
+                'garment_type' => $garmentType,
+            ])
+        );
     }
 
     /**

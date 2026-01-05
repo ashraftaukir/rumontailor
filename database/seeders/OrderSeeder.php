@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Customer;
+use App\Models\CustomerMeasurement;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
@@ -138,6 +139,9 @@ class OrderSeeder extends Seeder
                     'ankle' => $itemData['ankle'] ?? null,
                     'pant_length' => $itemData['pant_length'] ?? null,
                 ]);
+                
+                // Save measurements to customer_measurements for future use
+                $this->saveCustomerMeasurements($customer->id, $itemData['garment_type'], $itemData);
             }
         }
         
@@ -203,6 +207,52 @@ class OrderSeeder extends Seeder
         }
         
         return $measurements;
+    }
+    
+    /**
+     * Save customer measurements for future use
+     */
+    private function saveCustomerMeasurements(int $customerId, string $garmentType, array $itemData): void
+    {
+        // Extract only measurement fields
+        $measurementFields = [
+            'chest', 'waist', 'shoulder_width', 'sleeve_length', 'shirt_length', 'jacket_length',
+            'neck', 'armhole', 'bicep', 'wrist', 'hip', 'inseam', 'outseam',
+            'thigh', 'knee', 'ankle', 'pant_length'
+        ];
+        
+        $measurements = [];
+        foreach ($measurementFields as $field) {
+            $value = $itemData[$field] ?? null;
+            $measurements[$field] = ($value === '' || $value === null || $value === false) 
+                ? null 
+                : (is_numeric($value) ? (float) $value : null);
+        }
+        
+        // Only save if there are actual measurement values
+        $hasMeasurements = false;
+        foreach ($measurements as $value) {
+            if ($value !== null && $value !== '') {
+                $hasMeasurements = true;
+                break;
+            }
+        }
+
+        if (!$hasMeasurements) {
+            return;
+        }
+
+        // Update or create customer measurement
+        CustomerMeasurement::updateOrCreate(
+            [
+                'customer_id' => $customerId,
+                'garment_type' => $garmentType,
+            ],
+            array_merge($measurements, [
+                'customer_id' => $customerId,
+                'garment_type' => $garmentType,
+            ])
+        );
     }
 }
 

@@ -22,6 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Customers
     Route::apiResource('customers', CustomerController::class);
     Route::get('/customers/search', [CustomerController::class, 'search']);
+    Route::get('/customers/{customer}/measurements', [CustomerController::class, 'getMeasurements']);
     
     // Orders
     Route::apiResource('orders', OrderController::class);

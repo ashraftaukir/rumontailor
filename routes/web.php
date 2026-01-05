@@ -28,6 +28,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         
         // Customer routes
         Route::resource('customers', CustomerController::class);
+        Route::get('/customers/{customer}/measurements', [CustomerController::class, 'getMeasurements'])->name('customers.measurements');
         
         // Order routes
         Route::resource('orders', OrderController::class);

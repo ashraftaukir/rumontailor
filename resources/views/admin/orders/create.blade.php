@@ -120,7 +120,8 @@
                                     <i class="fas fa-user text-indigo-600 mr-2"></i>Customer *
                                 </label>
                                 <select name="customer_id" id="customer_id" required
-                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white shadow-sm">
+                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white shadow-sm"
+                                    onchange="onCustomerChange()">
                                     <option value="">Select a customer</option>
                                     @foreach($customers as $customer)
                                         <option value="{{ $customer->id }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
@@ -420,11 +421,55 @@
                                 });
                             }
 
+                            // Load customer measurements when customer or garment type changes
+                            function loadCustomerMeasurements(itemIndex, garmentType) {
+                                const customerId = document.getElementById('customer_id').value;
+                                if (!customerId || !garmentType) {
+                                    return;
+                                }
+
+                                // Fetch customer measurements
+                                fetch(`/admin/customers/${customerId}/measurements?garment_type=${garmentType}`)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.measurement) {
+                                            populateMeasurements(itemIndex, garmentType, data.measurement);
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error loading measurements:', error);
+                                    });
+                            }
+
+                            // Populate measurement fields with saved values
+                            function populateMeasurements(itemIndex, garmentType, measurement) {
+                                const measurementsDiv = document.querySelector(`.item-measurements-${itemIndex}`);
+                                if (!measurementsDiv) return;
+
+                                // Map of measurement fields by garment type
+                                const measurementFields = {
+                                    shirt: ['chest', 'waist', 'shoulder_width', 'sleeve_length', 'shirt_length', 'neck', 'armhole', 'bicep', 'wrist'],
+                                    pant: ['waist', 'hip', 'inseam', 'outseam', 'thigh', 'knee', 'ankle', 'pant_length'],
+                                    suit: ['chest', 'waist', 'shoulder_width', 'sleeve_length', 'jacket_length', 'hip', 'inseam', 'outseam', 'thigh', 'knee', 'ankle', 'pant_length']
+                                };
+
+                                const fields = measurementFields[garmentType] || [];
+                                fields.forEach(field => {
+                                    const input = measurementsDiv.querySelector(`input[name="items[${itemIndex}][${field}]"]`);
+                                    if (input && measurement[field] !== null && measurement[field] !== undefined) {
+                                        input.value = measurement[field];
+                                    }
+                                });
+                            }
+
                             function updateItemMeasurements(itemIndex, garmentType) {
                                 const measurementsDiv = document.querySelector(`.item-measurements-${itemIndex}`);
                                 const shirtDiv = document.querySelector(`.item-shirt-measurements-${itemIndex}`);
                                 const pantDiv = document.querySelector(`.item-pant-measurements-${itemIndex}`);
                                 const suitDiv = document.querySelector(`.item-suit-measurements-${itemIndex}`);
+                                
+                                // Load customer measurements when garment type is selected
+                                loadCustomerMeasurements(itemIndex, garmentType);
 
                                 if (garmentType) {
                                     measurementsDiv.style.display = 'block';
@@ -464,6 +509,11 @@
                                             input.removeAttribute('data-disabled');
                                         });
                                     }
+                                    
+                                    // Load customer measurements after showing the fields
+                                    setTimeout(() => {
+                                        loadCustomerMeasurements(itemIndex, garmentType);
+                                    }, 100);
                                 } else {
                                     measurementsDiv.style.display = 'none';
                                     // Disable all inputs when no garment type is selected
@@ -598,6 +648,22 @@
                                 }
                                 
                                 return true;
+                            }
+
+                            // Handle customer selection change
+                            function onCustomerChange() {
+                                // When customer changes, reload measurements for all items with garment types selected
+                                const items = document.querySelectorAll('.order-item');
+                                items.forEach((item) => {
+                                    const garmentSelect = item.querySelector('.item-garment-type');
+                                    if (garmentSelect && garmentSelect.value) {
+                                        const nameMatch = garmentSelect.name.match(/items\[(\d+)\]/);
+                                        if (nameMatch) {
+                                            const itemIndex = nameMatch[1];
+                                            loadCustomerMeasurements(itemIndex, garmentSelect.value);
+                                        }
+                                    }
+                                });
                             }
 
                             // Add first item on page load

@@ -75,8 +75,28 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
-        $customer->load('orders');
+        $customer->load(['orders', 'measurements']);
         return response()->json($customer);
+    }
+
+    /**
+     * Get customer measurements by garment type
+     */
+    public function getMeasurements(Request $request, Customer $customer)
+    {
+        $garmentType = $request->get('garment_type');
+        
+        if ($garmentType) {
+            $measurement = $customer->getMeasurementByType($garmentType);
+            return response()->json([
+                'measurement' => $measurement,
+            ]);
+        }
+        
+        $measurements = $customer->measurements;
+        return response()->json([
+            'measurements' => $measurements,
+        ]);
     }
 
     /**
